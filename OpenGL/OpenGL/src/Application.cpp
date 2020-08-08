@@ -1,8 +1,12 @@
-//https://www.glfw.org/documentation.html
-//사이트에서 GLFW 다운로드. 필요 라이브러리 dependencies에 복사 후 설정
+//http://glew.sourceforge.net/
+//사이트에서 GLEW 바이너리 버전다운로드. 필요 라이브러리 dependencies에 복사 후 설정
+//http://glew.sourceforge.net/basic.html
 //아래 예제 코드실행 확인 
 
+//GLEW_STATIC Define 필요
+#include <GL/glew.h> //glfw보다 먼저 include해야 함
 #include <GLFW/glfw3.h>
+#include <iostream>
 
 int main(void)
 {
@@ -22,6 +26,14 @@ int main(void)
 
 	/* Make the window's context current */
 	glfwMakeContextCurrent(window);
+
+	// glfwMakeContextCurrent가 호출된 후에 glewInit이 수행되어야 함
+	if (glewInit() != GLEW_OK)
+	{
+		std::cout << "Error\n";
+	}
+
+	std::cout << glGetString(GL_VERSION) << std::endl; //내 플랫폼의 GL_Version 출력해보기
 
 	/* Loop until the user closes the window */
 	while (!glfwWindowShouldClose(window))
