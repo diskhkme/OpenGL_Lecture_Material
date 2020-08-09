@@ -23,6 +23,54 @@
 // Activate(t2); //삼각형 2를 처리중인 상태로 설정
 // Draw(); //현재 처리중인 데이터(=삼각형 2)를 화면에 그림
 
+//--------Shader 컴파일 함수----------//
+static unsigned int CompileShader(unsigned int type, const std::string& source)
+{
+	unsigned int id = glCreateShader(type); //셰이더 객체 생성(마찬가지)
+	const char* src = source.c_str();
+	glShaderSource(id, // 셰이더의 소스 코드 명시, 소스 코드를 명시할 셰이더 객체 id
+					1, // 몇 개의 소스 코드를 명시할 것인지
+					&src, // 실제 소스 코드가 들어있는 문자열의 주소값
+					nullptr); // 해당 문자열 전체를 사용할 경우 nullptr입력, 아니라면 길이 명시
+	glCompileShader(id); // id에 해당하는 셰이더 컴파일
+	
+	// Error Handling(없으면 셰이더 프로그래밍할때 괴롭다...)
+	int result;
+	glGetShaderiv(id, GL_COMPILE_STATUS, &result); //셰이더 프로그램으로부터 컴파일 결과(log)를 얻어옴
+	if (result == GL_FALSE) //컴파일에 실패한 경우
+	{
+		int length;
+		glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length); //log의 길이를 얻어옴
+		char* message = (char*)alloca(length * sizeof(char)); //stack에 동적할당
+		glGetShaderInfoLog(id, length, &length, message); //길이만큼 log를 얻어옴
+		std::cout << "셰이더 컴파일 실패! " << (type == GL_VERTEX_SHADER ? "vertex" : "fragment") << std::endl;
+		std::cout << message << std::endl;
+		glDeleteShader(id); //컴파일 실패한 경우 셰이더 삭제
+		return 0;
+	}
+
+	return id;
+}
+
+//--------Shader 프로그램 생성, 컴파일, 링크----------//
+static unsigned int CreateShader(const std::string& vertexShader, const std::string& fragShader)
+{
+	unsigned int program = glCreateProgram(); //셰이더 프로그램 객체 생성(int에 저장되는 것은 id)
+	unsigned int vs = CompileShader(GL_VERTEX_SHADER, vertexShader); 
+	unsigned int fs = CompileShader(GL_FRAGMENT_SHADER, fragShader);
+
+	//컴파일된 셰이더 코드를 program에 추가하고 링크
+	glAttachShader(program, vs);
+	glAttachShader(program, fs);
+	glLinkProgram(program);
+	glValidateProgram(program);
+
+	//셰이더 프로그램을 생성했으므로 vs, fs 개별 프로그램은 더이상 필요 없음
+	glDeleteShader(vs);
+	glDeleteShader(fs);
+
+	return program;
+}
 
 int main(void)
 {
@@ -67,17 +115,33 @@ int main(void)
 	glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), positions, GL_STATIC_DRAW);  //3. 작업 상태 버퍼에 데이터 전달
 
 	//---------데이터를 해석하는(법을 정의하는) 과정--------//
-	// 위에서는 Byte의 덩어리를 GPU로 전달했을 뿐, 그 데이터를 어떻게 나누어 사용할지는 알 수 없음
-	// 어떻게 나누어서 사용해야 하는지를 아래 두 과정을 통해 알려주어야 함
-	// 아래 "몇 번째 location"은 Shader를 보면 분명해질 것임
-
 	glEnableVertexAttribArray(0); //1. 몇 번째 Location의 attribute를 활성화(enable)
-	glVertexAttribPointer(0, //2. 데이터 해석 방법을 전달. 몇 번째 location의 attribute의 데이터 해석 방법인지
-						2,//각 데이터가 몇 개 단위로 이루어져 있는지(현재 예제에서 각 점은 두 개의 float으로 표현되므로 2임)
-						GL_FLOAT, //데이터 타입
-						GL_FALSE, //정규화가 필요한지
-						sizeof(float)*2, //한 단위의 데이터를 읽을 때마다, 얼마나 건너뛰어야(stride) 하는지(=첫 데이터와 두 번째 데이터가 얼마나 떨어져있는지)
-						0); //첫 데이터가 몇 바이트부터 시작하는지(복잡한 상황에 대한 그림은 강의자료 참고)
+	glVertexAttribPointer(0, 2,	GL_FLOAT, GL_FALSE, sizeof(float)*2, 0); //2. 데이터 해석 방법을 전달.
+
+	//---------Shader 생성---------------//
+	std::string vertexShader =
+		"#version 330 core\n"
+		"\n"
+		"layout(location = 0) in vec4 position;" //여기 있는 location = 0가, 118, 119 line의 0을 의미함
+		"\n"
+		"void main()\n"
+		"{\n"
+		"	gl_Position = position;\n" //119에서 보다시피, 2개의 값만 전달했지만, 알아서 vec4로 변환해줌
+		"}\n";
+
+	std::string fragShader =
+		"#version 330 core\n"
+		"\n"
+		"layout(location = 0) out vec4 color;" //출력 color
+		"\n"
+		"void main()\n"
+		"{\n"
+		"	color = vec4(1.0, 1.0 ,0.0, 1.0);\n" //빨간색 반환
+		"}\n";
+
+	unsigned int shader = CreateShader(vertexShader, fragShader);
+	glUseProgram(shader); //BindBuffer와 마찬가지로, 현재 셰이더 프로그램을 "작업 상태"로 놓음
+						  //draw call은 작업 상태인 셰이더 프로그램을 사용하여 작업 상태인 버퍼 데이터를 그림
 
 	/* Loop until the user closes the window */
 	while (!glfwWindowShouldClose(window))
@@ -87,9 +151,7 @@ int main(void)
 
 		glDrawArrays(GL_TRIANGLES, 0, 3); //Draw call
 		
-		//Attribute를 추가했더니 화면에 흰색 삼각형이 나옴!(GPU마다 다를 수 있음)
-		//사실은 셰이더가 없기 때문에 그려지지 않는 것이 맞지만, 
-		//GPU 드라이버에서 셰이더가 없을 때 흰색으로 그리는 등의 예외 처리를 해 두었기 때문에 화면에 나오는 것임
+		//이번에는 빨간색 삼각형이 나와야 함!
 
 		/* Swap front and back buffers */
 		glfwSwapBuffers(window);
@@ -97,6 +159,8 @@ int main(void)
 		/* Poll for and process events */
 		glfwPollEvents();
 	}
+
+	glDeleteProgram(shader); //셰이더 삭제
 
 	glfwTerminate();
 	return 0;
