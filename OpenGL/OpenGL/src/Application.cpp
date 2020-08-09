@@ -62,13 +62,22 @@ int main(void)
 
 	//---------데이터를 전달하는 과정--------//
 	unsigned int bufferID;
-	glGenBuffers(1, &bufferID); //1. 데이터를 저장할 버퍼 객체를 만들고(1개), 그 버퍼 객체의 주소를 bufferID에 저장
-	glBindBuffer(GL_ARRAY_BUFFER, bufferID); //2. 방금 만든 buffer(두 번째 인자로 주소를 넘겨준)를 "작업 상태"로 만듬
-											// 첫 번째 GL_ARRAY_BUFFER는 버퍼에 배열 데이터가 저장될 것이라는 의미
-	glBufferData(GL_ARRAY_BUFFER, //3. 이제 실제로 GPU에 데이터를 넘겨주는 함수를 호출 
-				6 * sizeof(float), //데이터의 크기를 전달
-				positions,		  //데이터 포인터 전달
-				GL_STATIC_DRAW);   //데이터 변경이 적을 것이라는 것을 알려줌(GPU의 효율적인 동작을 위한 Hint일 뿐)
+	glGenBuffers(1, &bufferID); //1. 버퍼 생성
+	glBindBuffer(GL_ARRAY_BUFFER, bufferID); //2. 바인딩("작업 상태")
+	glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), positions, GL_STATIC_DRAW);  //3. 작업 상태 버퍼에 데이터 전달
+
+	//---------데이터를 해석하는(법을 정의하는) 과정--------//
+	// 위에서는 Byte의 덩어리를 GPU로 전달했을 뿐, 그 데이터를 어떻게 나누어 사용할지는 알 수 없음
+	// 어떻게 나누어서 사용해야 하는지를 아래 두 과정을 통해 알려주어야 함
+	// 아래 "몇 번째 location"은 Shader를 보면 분명해질 것임
+
+	glEnableVertexAttribArray(0); //1. 몇 번째 Location의 attribute를 활성화(enable)
+	glVertexAttribPointer(0, //2. 데이터 해석 방법을 전달. 몇 번째 location의 attribute의 데이터 해석 방법인지
+						2,//각 데이터가 몇 개 단위로 이루어져 있는지(현재 예제에서 각 점은 두 개의 float으로 표현되므로 2임)
+						GL_FLOAT, //데이터 타입
+						GL_FALSE, //정규화가 필요한지
+						sizeof(float)*2, //한 단위의 데이터를 읽을 때마다, 얼마나 건너뛰어야(stride) 하는지(=첫 데이터와 두 번째 데이터가 얼마나 떨어져있는지)
+						0); //첫 데이터가 몇 바이트부터 시작하는지(복잡한 상황에 대한 그림은 강의자료 참고)
 
 	/* Loop until the user closes the window */
 	while (!glfwWindowShouldClose(window))
@@ -76,24 +85,11 @@ int main(void)
 		/* Render here */
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		// 삼각형 그리는 Legacy 코드 추가 <-- 예전 방식임.
-		//glBegin(GL_TRIANGLES);
-		//glVertex2f(-0.5f, -0.5f);
-		//glVertex2f( 0.0f,  0.5f);
-		//glVertex2f( 0.5f, -0.5f);
-		//glEnd();
-
-		//----------Modern OpenGL----------//
-		// 주의해서 알아야 할 점 : 아래 draw call에서, 삼각형을 그리는 것은
-		// 66번째 line에서 glBindBuffer()가 되어 있기 때문임.
-		// 아래 glDrawArray에서는 무엇을 그릴 것인지 인자로 넘기는 것이 아니라,
-		// 현재 "작업 상태"에 들어와 있는 대상을 그리는 것
-		glDrawArrays(GL_TRIANGLES, //실제 draw call, 삼각형을 그릴 것이라고 명시
-					0,				//몇 번째 데이터부터 그리려는지 명시(모두 그린다면 0)
-					3);				//몇 개의 데이터를 그릴 것인지 명시
+		glDrawArrays(GL_TRIANGLES, 0, 3); //Draw call
 		
-		//현재는 아무것도 화면에 나오지 않을 것임. 
-		//왜냐하면 삼각형을 어떻게 그릴 것인지 쉐이더를 통해 알려주지 않았기 때문!
+		//Attribute를 추가했더니 화면에 흰색 삼각형이 나옴!(GPU마다 다를 수 있음)
+		//사실은 셰이더가 없기 때문에 그려지지 않는 것이 맞지만, 
+		//GPU 드라이버에서 셰이더가 없을 때 흰색으로 그리는 등의 예외 처리를 해 두었기 때문에 화면에 나오는 것임
 
 		/* Swap front and back buffers */
 		glfwSwapBuffers(window);
