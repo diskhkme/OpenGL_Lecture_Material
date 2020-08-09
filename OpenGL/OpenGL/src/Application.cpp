@@ -121,29 +121,45 @@ int main(void)
 	//-----Modern OpenGL 방식--------//
 	// http://docs.gl/ 에서 아래 gl함수들의 reference를 찾을 수 있음
 
-	float positions[6] = { //삼각형 좌표 정보. 현재는 CPU side memory에 있음
-		-0.5f, -0.5f,
-		 0.0f,  0.5f,
-		 0.5f, -0.5f,
+	//float positions[] = { //사각형을 그리기 위해 1차 수정
+	//	-0.5f, -0.5f,
+	//	 0.5f, -0.5f,
+	//	 0.5f,  0.5f,
+
+	//	 0.5f,  0.5f, //데이터 중복
+	//	-0.5f,  0.5f,
+	//	-0.5f, -0.5f, //데이터 중복, 현재는 위치 정보만 담고 있지만 일반적으로 법선 등 많은 정보를 담으므로, 낭비가 큼
+	//};
+
+	float positions[] = { //사각형을 그리기 위해 2차 수정
+		-0.5f, -0.5f, //0
+		 0.5f, -0.5f, //1
+		 0.5f,  0.5f, //2
+		-0.5f,  0.5f, //3
+	};
+
+	unsigned int indices[] = { //index buffer를 함께 사용(index는 unsigned 타입임에 유의)
+		0, 1, 2, //vertex 012로 이루어진 삼각형
+		2, 3, 0  //vertex 230로 이루어진 삼각형
 	};
 
 	//---------데이터를 전달하는 과정--------//
 	unsigned int bufferID;
 	glGenBuffers(1, &bufferID); //1. 버퍼 생성
 	glBindBuffer(GL_ARRAY_BUFFER, bufferID); //2. 바인딩("작업 상태")
-	glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), positions, GL_STATIC_DRAW);  //3. 작업 상태 버퍼에 데이터 전달
+	glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(float), positions, GL_STATIC_DRAW);  //3. 작업 상태 버퍼에 데이터 전달
 
 	//---------데이터를 해석하는(법을 정의하는) 과정--------//
 	glEnableVertexAttribArray(0); //1. 몇 번째 Location의 attribute를 활성화(enable)
 	glVertexAttribPointer(0, 2,	GL_FLOAT, GL_FALSE, sizeof(float)*2, 0); //2. 데이터 해석 방법을 전달.
 
+	unsigned int ibo; //index buffer object
+	glGenBuffers(1, &ibo); //1. 인덱스 버퍼 생성
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo); //2. 바인딩("작업 상태"), 이번에는 ARRAY_BUFFER가 아니라 ELEMENT_ARRAY_BUFFER
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW);  //3. 작업 상태 버퍼에 데이터 전달
+	   
 	//---------Shader 생성---------------//
-	//shader는 res/shaders/basic.shader로 소스코드를 옮김
 	ShaderProgramSource source = ParseShader("res/shaders/Basic.shader"); //셰이더 코드 파싱
-	//std::cout << "Vertex : \n";
-	//std::cout << source.VertexSource << std::endl;
-	//std::cout << "Fragment : \n";
-	//std::cout << source.FragSource << std::endl;
 
 	unsigned int shader = CreateShader(source.VertexSource, source.FragSource);
 	glUseProgram(shader); //BindBuffer와 마찬가지로, 현재 셰이더 프로그램을 "작업 상태"로 놓음
@@ -155,9 +171,12 @@ int main(void)
 		/* Render here */
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		glDrawArrays(GL_TRIANGLES, 0, 3); //Draw call
+		//glDrawArrays(GL_TRIANGLES, 0, 6); //Draw call
+		glDrawElements(GL_TRIANGLES, //index buffer를 사용할 때는 drawelement함수를 사용해야 함
+						6,			//그릴 index의 갯수
+						GL_UNSIGNED_INT, //index 타입 (GL_INT같이 잘못쓰면 안됨!)
+						nullptr); //offset 포인터
 		
-		//이번에는 빨간색 삼각형이 나와야 함!
 
 		/* Swap front and back buffers */
 		glfwSwapBuffers(window);
