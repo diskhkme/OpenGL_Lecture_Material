@@ -5,6 +5,29 @@
 #include <string>
 #include <sstream>
 
+//__debugbreak()는 MSVC에만 사용 가능
+#define ASSERT(x) if ((!x)) __debugbreak(); 
+#define GLCall(x) GLClearError();\
+				  x;\
+				  ASSERT(GLLogCall(#x, __FILE__, __LINE__))
+
+//glGetError는 에러를 하나씩만 반환하기 때문에, 한 번 확인에 모든 오류를 뽑아내는 것이 필요함
+static void GLClearError()
+{
+	while (glGetError() != GL_NO_ERROR); // GL_NO_ERROR == 0
+}
+
+static bool GLLogCall(const char* function, const char* file, int line)
+{
+	while (GLenum error = glGetError())
+	{
+		std::cout << "[OpenGL Error] (" << error << ") : " << function <<
+			" " << file << " in line " << line << std::endl;
+		return false;
+	}
+	return true;
+}
+
 struct ShaderProgramSource
 {
 	std::string VertexSource;
@@ -121,16 +144,6 @@ int main(void)
 	//-----Modern OpenGL 방식--------//
 	// http://docs.gl/ 에서 아래 gl함수들의 reference를 찾을 수 있음
 
-	//float positions[] = { //사각형을 그리기 위해 1차 수정
-	//	-0.5f, -0.5f,
-	//	 0.5f, -0.5f,
-	//	 0.5f,  0.5f,
-
-	//	 0.5f,  0.5f, //데이터 중복
-	//	-0.5f,  0.5f,
-	//	-0.5f, -0.5f, //데이터 중복, 현재는 위치 정보만 담고 있지만 일반적으로 법선 등 많은 정보를 담으므로, 낭비가 큼
-	//};
-
 	float positions[] = { //사각형을 그리기 위해 2차 수정
 		-0.5f, -0.5f, //0
 		 0.5f, -0.5f, //1
@@ -171,13 +184,8 @@ int main(void)
 		/* Render here */
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		//glDrawArrays(GL_TRIANGLES, 0, 6); //Draw call
-		glDrawElements(GL_TRIANGLES, //index buffer를 사용할 때는 drawelement함수를 사용해야 함
-						6,			//그릴 index의 갯수
-						GL_UNSIGNED_INT, //index 타입 (GL_INT같이 잘못쓰면 안됨!)
-						nullptr); //offset 포인터
+		GLCall(glDrawElements(GL_TRIANGLES, 6,	GL_INT, nullptr)); //Draw call, 강제로 오류를 만들어 보자
 		
-
 		/* Swap front and back buffers */
 		glfwSwapBuffers(window);
 
