@@ -8,6 +8,7 @@
 #include "Renderer.h"
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
+#include "VertexArray.h"
 
 //Error Handling 코드는 Renderer로 이동
 
@@ -145,21 +146,14 @@ int main(void)
 			2, 3, 0  //vertex 230로 이루어진 삼각형
 		};
 
-		//loop에 적어놓은 반복적 작업을 한 그룹으로 묶기 위해 VAO(Vertex Array Object)를 사용해야 함
-		//VAO는 아래 데이터 전달 과정 및 해석 과정을 담고있는 데이터라고 생각하면 됨
-		unsigned int vao;
-		glGenVertexArrays(1, &vao); //vao 생성
-		glBindVertexArray(vao); //vao 바인딩(="작업 상태")
+		//vao 생성 VertexArray가 담당
+		VertexArray va; 
+		VertexBuffer vb{ positions, 4 * 2 * sizeof(float) }; 
+		VertexBufferLayout layout;
+		layout.Push<float>(2); //vertex당 2개의 위치를 표현하는 float 데이터
+		//layout.Push<float>(3); //만일 vertex당 색상을 표현하는 3개의 rgb데이터가 더 있었으면 왼쪽과 같이 추가하면, layout에서 알아서 stride 계산
+		va.AddBuffer(vb, layout);
 
-		//---------데이터를 전달하는 과정--------//
-		// Vertex Buffer 코드 VertexBuffer로 이동
-		VertexBuffer vb{ positions, 4 * 2 * sizeof(float) };
-
-		//---------데이터를 해석하는(법을 정의하는) 과정--------//
-		glEnableVertexAttribArray(0); //1. 몇 번째 Location의 attribute를 활성화(enable)
-		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0); //2. 데이터 해석 방법을 전달. (실제로 VAO에 정보가 저장되는 시점)
-
-		// Index Buffer 코드 IndexBuffer로 이동
 		IndexBuffer ib{ indices, 6 };
 
 
@@ -194,7 +188,7 @@ int main(void)
 			GLCall(glUseProgram(shader));
 			GLCall(glUniform4f(location, r, 0.3f, 0.8f, 1.0f));
 
-			GLCall(glBindVertexArray(vao));
+			va.Bind();
 			ib.Bind(); //한 모델이 다른 Material을 사용할 경우 여러 Draw call에 걸쳐 그려지는 경우가 많고, 이러한 경우 index buffer로 모델의 부분을 구분하는 경우가 많음
 
 			GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr)); //Draw call
