@@ -133,6 +133,8 @@ int main(void)
 	/* Make the window's context current */
 	glfwMakeContextCurrent(window);
 
+	glfwSwapInterval(1); //1이면 vsync rate와 같은 속도로 화면 갱신
+
 	// glfwMakeContextCurrent가 호출된 후에 glewInit이 수행되어야 함
 	if (glewInit() != GLEW_OK)
 	{
@@ -178,14 +180,33 @@ int main(void)
 	glUseProgram(shader); //BindBuffer와 마찬가지로, 현재 셰이더 프로그램을 "작업 상태"로 놓음
 						  //draw call은 작업 상태인 셰이더 프로그램을 사용하여 작업 상태인 버퍼 데이터를 그림
 
+	//--------Uniform 데이터 전달--------//
+	// *주의* 이 부분도 당연히 shader가 바인딩("작업 상태")된 상태에서 수행해야 함
+	GLCall(int location = glGetUniformLocation(shader, "u_Color")); //셰이더 프로그램에 uniform 데이터를 전달하기 위해서는 uniform의 위치 정보가 필요. 
+															//셰이더 객체와 변수 이름을 인자로 넘겨주어 얻어올 수 있음
+	ASSERT(location != 1);
+	GLCall(glUniform4f(location, 0.2f, 0.3f, 0.8f, 1.0f));
+
+	float r = 0.0f;
+	float increment = 0.05f;
 	/* Loop until the user closes the window */
 	while (!glfwWindowShouldClose(window))
 	{
 		/* Render here */
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		GLCall(glDrawElements(GL_TRIANGLES, 6,	GL_INT, nullptr)); //Draw call, 강제로 오류를 만들어 보자
+		//실시간으로 데이터를 변경하고 싶다면, 매 frame draw call이 호출되기 이전에 uniform 데이터를 변경해서 전달해주면 됨
+		GLCall(glUniform4f(location, r, 0.3f, 0.8f, 1.0f));
+
+		GLCall(glDrawElements(GL_TRIANGLES, 6,	GL_UNSIGNED_INT, nullptr)); //Draw call, 강제로 오류를 만들어 보자
 		
+		if (r > 1.0f)
+			increment = -0.05f;
+		if (r < 0.0f)
+			increment = 0.05f;
+
+		r += increment;
+
 		/* Swap front and back buffers */
 		glfwSwapBuffers(window);
 
