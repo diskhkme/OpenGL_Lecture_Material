@@ -7,6 +7,7 @@
 
 //__debugbreak()는 MSVC에만 사용 가능
 #define ASSERT(x) if ((!x)) __debugbreak(); 
+// GLCall로 감싸서 gl 함수를 호출하면 오류 라인과 메시지 확인 가능
 #define GLCall(x) GLClearError();\
 				  x;\
 				  ASSERT(GLLogCall(#x, __FILE__, __LINE__))
@@ -122,6 +123,11 @@ int main(void)
 	if (!glfwInit())
 		return -1;
 
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3); //Opengl 3.3 버전 사용
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	//glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE); //Compatability 버전일때는 VAO를 안만들어도 동작
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
 	/* Create a windowed mode window and its OpenGL context */
 	window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
 	if (!window)
@@ -158,15 +164,21 @@ int main(void)
 		2, 3, 0  //vertex 230로 이루어진 삼각형
 	};
 
+	//loop에 적어놓은 반복적 작업을 한 그룹으로 묶기 위해 VAO(Vertex Array Object)를 사용해야 함
+	//VAO는 아래 데이터 전달 과정 및 해석 과정을 담고있는 데이터라고 생각하면 됨
+	unsigned int vao;
+	glGenVertexArrays(1, &vao); //vao 생성
+	glBindVertexArray(vao); //vao 바인딩(="작업 상태")
+
 	//---------데이터를 전달하는 과정--------//
-	unsigned int bufferID;
-	glGenBuffers(1, &bufferID); //1. 버퍼 생성
-	glBindBuffer(GL_ARRAY_BUFFER, bufferID); //2. 바인딩("작업 상태")
+	unsigned int vbo; //개념적으로 buffer ID라 불렀고, 실제로는 vbo(vertex buffer object)라는 용어를 많이 씀
+	glGenBuffers(1, &vbo); //1. 버퍼 생성
+	glBindBuffer(GL_ARRAY_BUFFER, vbo); //2. 바인딩("작업 상태")
 	glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(float), positions, GL_STATIC_DRAW);  //3. 작업 상태 버퍼에 데이터 전달
 
 	//---------데이터를 해석하는(법을 정의하는) 과정--------//
 	glEnableVertexAttribArray(0); //1. 몇 번째 Location의 attribute를 활성화(enable)
-	glVertexAttribPointer(0, 2,	GL_FLOAT, GL_FALSE, sizeof(float)*2, 0); //2. 데이터 해석 방법을 전달.
+	glVertexAttribPointer(0, 2,	GL_FLOAT, GL_FALSE, sizeof(float)*2, 0); //2. 데이터 해석 방법을 전달. (실제로 VAO에 정보가 저장되는 시점)
 
 	unsigned int ibo; //index buffer object
 	glGenBuffers(1, &ibo); //1. 인덱스 버퍼 생성
@@ -187,6 +199,12 @@ int main(void)
 	ASSERT(location != 1);
 	GLCall(glUniform4f(location, 0.2f, 0.3f, 0.8f, 1.0f));
 
+	glBindVertexArray(0); //vao unbind
+	glBindBuffer(GL_ARRAY_BUFFER, 0); //객체 인자를 0으로 바인딩하면, 현재 작업 상태를 해제한다는 의미(unbind)
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); //객체 인자를 0으로 바인딩하면, 현재 작업 상태를 해제한다는 의미(unbind)
+	glUseProgram(0); //객체 인자를 0으로 바인딩하면, 현재 작업 상태를 해제한다는 의미(unbind)
+
+
 	float r = 0.0f;
 	float increment = 0.05f;
 	/* Loop until the user closes the window */
@@ -195,10 +213,33 @@ int main(void)
 		/* Render here */
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		//실시간으로 데이터를 변경하고 싶다면, 매 frame draw call이 호출되기 이전에 uniform 데이터를 변경해서 전달해주면 됨
-		GLCall(glUniform4f(location, r, 0.3f, 0.8f, 1.0f));
+		//https://webgl2fundamentals.org/webgl/lessons/resources/webgl-state-diagram.html?exampleId=triangle#no-help
+		//https://www.youtube.com/watch?v=WMiggUPst-Q
+		//위(line 201~204)에서 unbind한 상태로 다시 바인딩 없이 물체를 그리면 오류가 발생함. (현재 "작업 상태"인 데이터가 없기 때문에 그릴 것이 없음)
+		//이전에는 loop 밖에서 바인딩을 한 상태 그대로 계속 그렸기 때문에 문제없었음.
+		//문제는, 여러 물체를 여러 셰이더를 사용해 그리려면 한 프레임 그릴 때마다 아래와 같은 코드를 반복적으로 호출해야 한다는 것임
+		//이러한 문제를 해결하기 위해서, VAO를 사용함(사용 해야 함)
+		//---------물체 하나를 그리기 위해 draw 전에 해야 하는 작업들(vao 정의를 사용하지 않을때)-----------//
+		//// 1. 셰이더 바인딩, uniform 데이터 전달
+		//glUseProgram(shader);
+		//GLCall(glUniform4f(location, r, 0.3f, 0.8f, 1.0f));
+		//// 2. vertex array 바인딩, 데이터 읽는 방법 전달
+		//glBindBuffer(GL_ARRAY_BUFFER, vbo); 
+		//glEnableVertexAttribArray(0); //1. 몇 번째 Location의 attribute를 활성화(enable)
+		//glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0); //2. 데이터 해석 방법을 전달.
+		//// 3. index array 바인딩
+		//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+		//-------------------------------------------------------------------//
 
-		GLCall(glDrawElements(GL_TRIANGLES, 6,	GL_UNSIGNED_INT, nullptr)); //Draw call, 강제로 오류를 만들어 보자
+		//---------물체 하나를 그리기 위해 draw 전에 해야 하는 작업들(vao 정의를 사용할 때)-----------//
+		//1. 셰이더 바인딩, uniform 데이터 전달
+		GLCall(glUseProgram(shader));
+		GLCall(glUniform4f(location, r, 0.3f, 0.8f, 1.0f));
+		// 2. VAO 바인딩(데이터 전달과 읽는 방법, index가 저장되어 있음)
+		GLCall(glBindVertexArray(vao));
+		//-------------------------------------------------------------------//
+		
+		GLCall(glDrawElements(GL_TRIANGLES, 6,	GL_UNSIGNED_INT, nullptr)); //Draw call
 		
 		if (r > 1.0f)
 			increment = -0.05f;
