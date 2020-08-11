@@ -28,6 +28,7 @@ public:
 	void Unbind() const;
 
 	//Set Uniforms
+	void SetUniform1i(const std::string& name, int value); //shader slot을 명시하기 위한 int uniform 설정 함수 추가
 	void SetUniform4f(const std::string& name, float v0, float v1, float v2, float v3);
 	void SetUniform1f(const std::string& name, float value);
 private:

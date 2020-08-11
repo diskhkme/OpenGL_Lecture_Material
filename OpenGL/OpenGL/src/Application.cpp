@@ -11,6 +11,7 @@
 #include "IndexBuffer.h"
 #include "VertexArray.h"
 #include "Shader.h"
+#include "Texture.h"
 
 
 //Shader 클래스로 이동
@@ -50,11 +51,11 @@ int main(void)
 
 	{ 
 		
-		float positions[] = { //사각형을 그리기 위해 2차 수정
-			-0.5f, -0.5f, //0
-			 0.5f, -0.5f, //1
-			 0.5f,  0.5f, //2
-			-0.5f,  0.5f, //3
+		float positions[] = { //Vertex마다 텍스처 좌표(uv) 데이터 추가
+			-0.5f, -0.5f, 0.0f, 0.0f, //0 
+			 0.5f, -0.5f, 1.0f, 0.0f, //1
+			 0.5f,  0.5f, 1.0f, 1.0f, //2
+			-0.5f,  0.5f, 0.0f, 1.0f  //3
 		};
 
 		unsigned int indices[] = { //index buffer를 함께 사용(index는 unsigned 타입임에 유의)
@@ -62,11 +63,16 @@ int main(void)
 			2, 3, 0  //vertex 230로 이루어진 삼각형
 		};
 
+		//알파 채널 처리 방법 (chapter 10에서 다룰 예정)
+		GLCall(glEnable(GL_BLEND));
+		GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+
 		//vao 생성 VertexArray가 담당
 		VertexArray va; 
-		VertexBuffer vb{ positions, 4 * 2 * sizeof(float) }; 
+		VertexBuffer vb{ positions, 4 * 2 * 2 * sizeof(float) }; 
 		VertexBufferLayout layout;
 		layout.Push<float>(2); //vertex당 2개의 위치를 표현하는 float 데이터
+		layout.Push<float>(2); //vertex당 2개의 텍스처 좌표를 표현하는 float 데이터
 		va.AddBuffer(vb, layout);
 
 		IndexBuffer ib{ indices, 6 };
@@ -76,12 +82,17 @@ int main(void)
 		Shader shader{ "res/shaders/Basic.shader" };
 		shader.Bind();
 		shader.SetUniform4f("u_Color", 0.2f, 0.3f, 0.8f, 1.0f);
+
+		//--------------Texture 생성---------//
+		Texture texture{ "res/textures/JBNU.png" };
+		texture.Bind(); //0번 슬롯에 바인딩
+		shader.SetUniform1i("u_Texture", 0); //0번 슬롯의 텍스처를 사용할 것이라는 것을 셰이더에 명시
 		
 		va.Unbind();
 		vb.Unbind();
 		ib.Unbind();
 		shader.Unbind();
-
+			   
 		Renderer renderer;
 
 		float r = 0.0f;
