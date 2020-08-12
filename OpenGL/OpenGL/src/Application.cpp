@@ -13,8 +13,13 @@
 #include "Shader.h"
 #include "Texture.h"
 
+#include "glm/glm.hpp"
+#include "glm/gtx/transform.hpp"
 
-//Shader 클래스로 이동
+
+//행렬 계산을 위한 GLM 라이브러리 추가
+//https://github.com/g-truc/glm
+//detail 폴더에 있는 dummy.cpp 프로젝트에서 제외
 
 int main(void)
 {
@@ -77,11 +82,14 @@ int main(void)
 
 		IndexBuffer ib{ indices, 6 };
 
+		// GLM orthographics projection matrix 테스트
+		glm::mat4 proj = glm::ortho(-2.0f, 2.0f, -1.5f, 1.5f, -1.0f, 1.0f);
 
 		//---------Shader 생성---------------//
 		Shader shader{ "res/shaders/Basic.shader" };
 		shader.Bind();
 		shader.SetUniform4f("u_Color", 0.2f, 0.3f, 0.8f, 1.0f);
+		shader.SetUniformMat4f("u_Projection", proj);
 
 		//--------------Texture 생성---------//
 		Texture texture{ "res/textures/JBNU.png" };

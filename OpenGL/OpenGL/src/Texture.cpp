@@ -1,5 +1,5 @@
 #include "Texture.h"
-#include "vendor/stb_image/stb_image.h"
+#include "stb_image/stb_image.h" //src/vendor를 프로젝트 속성에서 추가함
 
 Texture::Texture(const std::string & path)
 	:m_RendererID{ 0 }, m_FilePath {path}, m_LocalBuffer{ nullptr }, m_Width{ 0 }, m_Height{ 0 }, m_BPP{ 0 }
