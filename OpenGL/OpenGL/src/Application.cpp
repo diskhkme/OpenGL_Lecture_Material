@@ -13,6 +13,8 @@
 #include "Shader.h"
 #include "Texture.h"
 
+#include "tests/TestClearColor.h"
+
 #include "glm/glm.hpp"
 #include "glm/gtx/transform.hpp"
 
@@ -58,56 +60,9 @@ int main(void)
 	std::cout << glGetString(GL_VERSION) << std::endl; //내 플랫폼의 GL_Version 출력해보기
 
 	{ 
-		
-		float positions[] = { //Vertex마다 텍스처 좌표(uv) 데이터 추가
-			-0.5f, -0.5f, 0.0f, 0.0f, //0 
-			 0.5f, -0.5f, 1.0f, 0.0f, //1
-			 0.5f,  0.5f, 1.0f, 1.0f, //2
-			-0.5f,  0.5f, 0.0f, 1.0f  //3
-		};
-
-		unsigned int indices[] = { //index buffer를 함께 사용(index는 unsigned 타입임에 유의)
-			0, 1, 2, //vertex 012로 이루어진 삼각형
-			2, 3, 0  //vertex 230로 이루어진 삼각형
-		};
-
 		//알파 채널 처리 방법 (chapter 10에서 다룰 예정)
 		GLCall(glEnable(GL_BLEND));
 		GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-
-		//vao 생성 VertexArray가 담당
-		VertexArray va; 
-		VertexBuffer vb{ positions, 4 * 2 * 2 * sizeof(float) }; 
-		VertexBufferLayout layout;
-		layout.Push<float>(2); //vertex당 2개의 위치를 표현하는 float 데이터
-		layout.Push<float>(2); //vertex당 2개의 텍스처 좌표를 표현하는 float 데이터
-		va.AddBuffer(vb, layout);
-
-		IndexBuffer ib{ indices, 6 };
-
-		// GLM orthographics projection matrix 테스트
-		glm::mat4 proj = glm::ortho(-2.0f, 2.0f, -1.5f, 1.5f, -1.0f, 1.0f);
-		glm::mat4 view = glm::lookAt(glm::vec3{ 0.0f,0.0f,0.5f },
-									glm::vec3{ 0.0f,0.0f,0.0f },
-									glm::vec3{ 0.0f,1.0f,0.0f });
-		glm::mat4 model = glm::translate(glm::vec3{ 0,0,0 });
-		glm::mat4 mvp = proj * view*model;
-
-		//---------Shader 생성---------------//
-		Shader shader{ "res/shaders/Basic.shader" };
-		shader.Bind();
-		shader.SetUniform4f("u_Color", 0.2f, 0.3f, 0.8f, 1.0f);
-		shader.SetUniformMat4f("u_MVP", mvp);
-
-		//--------------Texture 생성---------//
-		Texture texture{ "res/textures/JBNU.png" };
-		texture.Bind(); //0번 슬롯에 바인딩
-		shader.SetUniform1i("u_Texture", 0); //0번 슬롯의 텍스처를 사용할 것이라는 것을 셰이더에 명시
-		
-		va.Unbind();
-		vb.Unbind();
-		ib.Unbind();
-		shader.Unbind();
 			   
 		Renderer renderer;
 
@@ -116,68 +71,23 @@ int main(void)
 		ImGui_ImplGlfwGL3_Init(window, true);
 		ImGui::StyleColorsDark();
 
-		float r = 0.0f;
-		float increment = 0.05f;
-		glm::vec3 translation{ 0.0f,0.0f,0.0f };
-		/* Loop until the user closes the window */
+		test::TestClearColor test;
+
 		while (!glfwWindowShouldClose(window))
 		{
-			/* Render here */
-			renderer.Clear();
+			
+			test.OnUpdate(0.0f);
+			test.OnRender();
 
-			//imGUI 새 프레임
 			ImGui_ImplGlfwGL3_NewFrame();
-			
-			{
-				glm::mat4 proj = glm::ortho(-2.0f, 2.0f, -1.5f, 1.5f, -1.0f, 1.0f);
-				glm::mat4 view = glm::lookAt(glm::vec3{ 0.0f,0.0f,0.5f },
-					glm::vec3{ 0.0f,0.0f,0.0f },
-					glm::vec3{ 0.0f,1.0f,0.0f });
-				glm::mat4 model = glm::translate(translation); //imGUI에서 변경된 translation update
-				glm::mat4 mvp = proj * view*model;
-				
-				//Draw 1st object
-				shader.Bind();
-				shader.SetUniformMat4f("u_MVP", mvp);
-				renderer.Draw(va, ib, shader);
-			}
-			
-			{
-				//Draw 2nd object
-				glm::mat4 model = glm::translate(glm::vec3{ 1.0f,1.0f,0.0f }); //imGUI에서 변경된 translation update
-				glm::mat4 mvp = proj * view* model;
-				shader.SetUniformMat4f("u_MVP", mvp);
-				renderer.Draw(va, ib, shader);
-
-				//모든 물체를 위해 각각 draw call을 한번씩 호출해야 하는가?
-				//가능하지만, 비효율적. Batching을 사용하면 효율적(추후 살펴볼 것)
-			}
-
-			
-			if (r > 1.0f)
-				increment = -0.05f;
-			if (r < 0.0f)
-				increment = 0.05f;
-
-			r += increment;
-
-			// 1. Show a simple window.
-			// Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets automatically appears in a window called "Debug".
-			{
-				static float f = 0.0f;
-				ImGui::SliderFloat3("Translation", &translation.x, -1.0f, 1.0f);
-				ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-			}
-
-
-			//imGUI 렌더
+			test.OnImGuiRender();
 			ImGui::Render();
 			ImGui_ImplGlfwGL3_RenderDrawData(ImGui::GetDrawData());
 
-			/* Swap front and back buffers */
+			
 			glfwSwapBuffers(window);
 
-			/* Poll for and process events */
+			
 			glfwPollEvents();
 		}
 	}
