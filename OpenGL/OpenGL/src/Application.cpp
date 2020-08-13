@@ -16,6 +16,9 @@
 #include "glm/glm.hpp"
 #include "glm/gtx/transform.hpp"
 
+#include "imgui/imgui.h" //먼저 include 필요
+#include "imgui/imgui_impl_glfw_gl3.h"
+
 
 //행렬 계산을 위한 GLM 라이브러리 추가
 //https://github.com/g-truc/glm
@@ -84,12 +87,17 @@ int main(void)
 
 		// GLM orthographics projection matrix 테스트
 		glm::mat4 proj = glm::ortho(-2.0f, 2.0f, -1.5f, 1.5f, -1.0f, 1.0f);
+		glm::mat4 view = glm::lookAt(glm::vec3{ 0.0f,0.0f,0.5f },
+									glm::vec3{ 0.0f,0.0f,0.0f },
+									glm::vec3{ 0.0f,1.0f,0.0f });
+		glm::mat4 model = glm::translate(glm::vec3{ 0,0,0 });
+		glm::mat4 mvp = proj * view*model;
 
 		//---------Shader 생성---------------//
 		Shader shader{ "res/shaders/Basic.shader" };
 		shader.Bind();
 		shader.SetUniform4f("u_Color", 0.2f, 0.3f, 0.8f, 1.0f);
-		shader.SetUniformMat4f("u_Projection", proj);
+		shader.SetUniformMat4f("u_MVP", mvp);
 
 		//--------------Texture 생성---------//
 		Texture texture{ "res/textures/JBNU.png" };
@@ -103,15 +111,32 @@ int main(void)
 			   
 		Renderer renderer;
 
+		//----ImGUI Init---//
+		ImGui::CreateContext();
+		ImGui_ImplGlfwGL3_Init(window, true);
+		ImGui::StyleColorsDark();
+
 		float r = 0.0f;
 		float increment = 0.05f;
+		glm::vec3 translation{ 0.0f,0.0f,0.0f };
 		/* Loop until the user closes the window */
 		while (!glfwWindowShouldClose(window))
 		{
 			/* Render here */
 			renderer.Clear();
 
+			//imGUI 새 프레임
+			ImGui_ImplGlfwGL3_NewFrame();
+
+			glm::mat4 proj = glm::ortho(-2.0f, 2.0f, -1.5f, 1.5f, -1.0f, 1.0f);
+			glm::mat4 view = glm::lookAt(glm::vec3{ 0.0f,0.0f,0.5f },
+				glm::vec3{ 0.0f,0.0f,0.0f },
+				glm::vec3{ 0.0f,1.0f,0.0f });
+			glm::mat4 model = glm::translate(translation); //imGUI에서 변경된 translation update
+			glm::mat4 mvp = proj * view*model;
+
 			shader.Bind();
+			shader.SetUniformMat4f("u_MVP", mvp);
 			shader.SetUniform4f("u_Color", r, 0.3f, 0.8f, 1.0f); //여기서 다시 바인딩하고 데이터를 제공하는 것은 문제는 없음. Material(Shader + data)를 정의해서 분리하는 것이 일반적
 
 			//Renderer로 이동
@@ -124,6 +149,19 @@ int main(void)
 
 			r += increment;
 
+			// 1. Show a simple window.
+			// Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets automatically appears in a window called "Debug".
+			{
+				static float f = 0.0f;
+				ImGui::SliderFloat3("Translation", &translation.x, -1.0f, 1.0f);
+				ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+			}
+
+
+			//imGUI 렌더
+			ImGui::Render();
+			ImGui_ImplGlfwGL3_RenderDrawData(ImGui::GetDrawData());
+
 			/* Swap front and back buffers */
 			glfwSwapBuffers(window);
 
@@ -132,7 +170,8 @@ int main(void)
 		}
 	}
 	
-
+	ImGui_ImplGlfwGL3_Shutdown();
+	ImGui::DestroyContext();
 	glfwTerminate();
 	return 0;
 }
