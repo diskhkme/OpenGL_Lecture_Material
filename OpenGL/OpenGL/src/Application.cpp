@@ -127,20 +127,32 @@ int main(void)
 
 			//imGUI 새 프레임
 			ImGui_ImplGlfwGL3_NewFrame();
+			
+			{
+				glm::mat4 proj = glm::ortho(-2.0f, 2.0f, -1.5f, 1.5f, -1.0f, 1.0f);
+				glm::mat4 view = glm::lookAt(glm::vec3{ 0.0f,0.0f,0.5f },
+					glm::vec3{ 0.0f,0.0f,0.0f },
+					glm::vec3{ 0.0f,1.0f,0.0f });
+				glm::mat4 model = glm::translate(translation); //imGUI에서 변경된 translation update
+				glm::mat4 mvp = proj * view*model;
+				
+				//Draw 1st object
+				shader.Bind();
+				shader.SetUniformMat4f("u_MVP", mvp);
+				renderer.Draw(va, ib, shader);
+			}
+			
+			{
+				//Draw 2nd object
+				glm::mat4 model = glm::translate(glm::vec3{ 1.0f,1.0f,0.0f }); //imGUI에서 변경된 translation update
+				glm::mat4 mvp = proj * view* model;
+				shader.SetUniformMat4f("u_MVP", mvp);
+				renderer.Draw(va, ib, shader);
 
-			glm::mat4 proj = glm::ortho(-2.0f, 2.0f, -1.5f, 1.5f, -1.0f, 1.0f);
-			glm::mat4 view = glm::lookAt(glm::vec3{ 0.0f,0.0f,0.5f },
-				glm::vec3{ 0.0f,0.0f,0.0f },
-				glm::vec3{ 0.0f,1.0f,0.0f });
-			glm::mat4 model = glm::translate(translation); //imGUI에서 변경된 translation update
-			glm::mat4 mvp = proj * view*model;
+				//모든 물체를 위해 각각 draw call을 한번씩 호출해야 하는가?
+				//가능하지만, 비효율적. Batching을 사용하면 효율적(추후 살펴볼 것)
+			}
 
-			shader.Bind();
-			shader.SetUniformMat4f("u_MVP", mvp);
-			shader.SetUniform4f("u_Color", r, 0.3f, 0.8f, 1.0f); //여기서 다시 바인딩하고 데이터를 제공하는 것은 문제는 없음. Material(Shader + data)를 정의해서 분리하는 것이 일반적
-
-			//Renderer로 이동
-			renderer.Draw(va, ib, shader);
 			
 			if (r > 1.0f)
 				increment = -0.05f;
