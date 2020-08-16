@@ -60,6 +60,9 @@
     <ClCompile Include="src\tests\test.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="src\tests\TestTexture2D.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="res\shaders\Basic.shader" />
@@ -870,6 +873,9 @@
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="src\tests\TestClearColor.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tests\TestTexture2D.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>

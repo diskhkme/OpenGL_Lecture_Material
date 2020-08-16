@@ -13,18 +13,14 @@
 #include "Shader.h"
 #include "Texture.h"
 
-#include "tests/TestClearColor.h"
-
 #include "glm/glm.hpp"
 #include "glm/gtx/transform.hpp"
 
 #include "imgui/imgui.h" //먼저 include 필요
 #include "imgui/imgui_impl_glfw_gl3.h"
 
-
-//행렬 계산을 위한 GLM 라이브러리 추가
-//https://github.com/g-truc/glm
-//detail 폴더에 있는 dummy.cpp 프로젝트에서 제외
+#include "tests/TestClearColor.h"
+#include "tests/TestTexture2D.h"
 
 int main(void)
 {
@@ -76,6 +72,7 @@ int main(void)
 		currentTest = testMenu;
 
 		testMenu->RegisterTest<test::TestClearColor>("Clear Color");
+		testMenu->RegisterTest<test::TestTexture2D>("2D Texture");
 
 		while (!glfwWindowShouldClose(window))
 		{
