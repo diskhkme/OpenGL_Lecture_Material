@@ -71,16 +71,34 @@ int main(void)
 		ImGui_ImplGlfwGL3_Init(window, true);
 		ImGui::StyleColorsDark();
 
-		test::TestClearColor test;
+		test::Test* currentTest = nullptr;
+		test::TestMenu* testMenu = new test::TestMenu(currentTest);
+		currentTest = testMenu;
+
+		testMenu->RegisterTest<test::TestClearColor>("Clear Color");
 
 		while (!glfwWindowShouldClose(window))
 		{
-			
-			test.OnUpdate(0.0f);
-			test.OnRender();
-
+			GLCall(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
+			renderer.Clear();
 			ImGui_ImplGlfwGL3_NewFrame();
-			test.OnImGuiRender();
+
+			if (currentTest)
+			{
+				currentTest->OnUpdate(0.0f);
+				currentTest->OnRender();
+				ImGui::Begin("Test");
+				//testMenu 상태가 아니면 <- 버튼을 그리고, 만일 그 버튼이 눌렸다면
+				if (currentTest != testMenu && ImGui::Button("<-"))
+				{
+					//현재 테스트를 삭제하고 테스트 메뉴를 현재 테스트로 지정
+					delete currentTest;
+					currentTest = testMenu;
+				}
+				currentTest->OnImGuiRender();
+				ImGui::End();
+			}
+
 			ImGui::Render();
 			ImGui_ImplGlfwGL3_RenderDrawData(ImGui::GetDrawData());
 
@@ -90,7 +108,14 @@ int main(void)
 			
 			glfwPollEvents();
 		}
+
+		//종료 전, testMenu 상태라면 currentTest만 삭제, 아니면 testMenu도 추가로 삭제
+		delete currentTest;
+		if (currentTest != testMenu)
+			delete testMenu;
 	}
+
+	
 	
 	ImGui_ImplGlfwGL3_Shutdown();
 	ImGui::DestroyContext();
