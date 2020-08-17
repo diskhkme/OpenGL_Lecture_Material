@@ -65,7 +65,7 @@ int Window::Initialize()
 
 	//콜백 등록
 	CreateCallback();
-	glfwSetInputMode(m_MainWindow, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);//프로그램 실행 도중 마우스 커서가 보이지 않도록 설정하는 옵션
+	glfwSetInputMode(m_MainWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);//프로그램 실행 도중 마우스 커서가 보이지 않도록 설정하는 옵션
 
 	//callback은 static 함수로 선언되었으므로, GLFW에게 현재 GLFW윈도우를 포함하는 내가 만든 윈도우 객체 포인터를 알림
 	//https://stackoverflow.com/questions/55145966/what-does-glfwgetwindowuserpointer-do
@@ -109,13 +109,13 @@ void Window::HandleKeys(GLFWwindow * window, int key, int code, int action, int 
 		{
 			//특정 키가 눌렸으면, m_Keys 배열의 해당 키에 해당하는 값을 true로 설정
 			windowObject->m_Keys[key] = true;
-			std::cout << "Pressed : " << key << std::endl;
+			//std::cout << "Pressed : " << key << std::endl;
 		}
 		else if (action == GLFW_RELEASE)
 		{
 			//특정 키가 떼졌으면, m_Keys 배열의 해당 키에 해당하는 값을 false로 설정
 			windowObject->m_Keys[key] = false;
-			std::cout << "Release : " << key << std::endl;
+			//std::cout << "Release : " << key << std::endl;
 		}
 	}
 }
@@ -143,8 +143,8 @@ void Window::HandleMouse(GLFWwindow * window, double xPos, double yPos)
 		windowObject->m_LastX = xPos;
 		windowObject->m_LastY = yPos;
 
-		std::cout << "XChange : " << windowObject->m_XChange <<
-			" YChange : " << windowObject->m_YChange << std::endl;
+		/*std::cout << "XChange : " << windowObject->m_XChange <<
+			" YChange : " << windowObject->m_YChange << std::endl;*/
 	}
 
 }

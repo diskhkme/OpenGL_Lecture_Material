@@ -13,14 +13,10 @@
 #include "Shader.h"
 #include "Texture.h"
 #include "Window.h"
+#include "Camera.h"
 
 #include "glm/glm.hpp"
 #include "glm/gtx/transform.hpp"
-
-
-//행렬 계산을 위한 GLM 라이브러리 추가
-//https://github.com/g-truc/glm
-//detail 폴더에 있는 dummy.cpp 프로젝트에서 제외
 
 int main(void)
 {
@@ -52,14 +48,19 @@ int main(void)
 
 		IndexBuffer ib{ indices, 6 };
 
-		// GLM orthographics projection matrix 테스트
-		glm::mat4 proj = glm::ortho(-2.0f, 2.0f, -1.5f, 1.5f, -1.0f, 1.0f);
+		//yaw 값이 0일때는 front가 [1,0,0]이므로, yaw를 90으로 해서 초기 front가 [0,0,-1]이 되도록 함
+		Camera camera{ glm::vec3{0.0f,0.0f,5.0f}, glm::vec3{0.0f,1.0f,0.0f}, -90.0f, 0.0f, 5.0f, 0.5f };
+
+		//앞뒤 이동 효과를 올바로 보기 위해서는 perspective projection 행렬 필요
+		float aspect = (float)mainWindow.GetBufferWidth() / mainWindow.GetBufferHeight();
+		glm::mat4 proj = glm::perspective(45.0f, aspect, 0.1f, 100.0f);
 
 		//---------Shader 생성---------------//
 		Shader shader{ "res/shaders/Basic.shader" };
 		shader.Bind();
 		shader.SetUniform4f("u_Color", 0.2f, 0.3f, 0.8f, 1.0f);
 		shader.SetUniformMat4f("u_Projection", proj);
+		shader.SetUniformMat4f("u_View", camera.calculateViewMatrix());
 
 		//--------------Texture 생성---------//
 		Texture texture{ "res/textures/JBNU.png" };
@@ -73,32 +74,34 @@ int main(void)
 			   
 		Renderer renderer;
 
-		float r = 0.0f;
-		float increment = 0.05f;
-		/* Loop until the user closes the window */
+		//매 프레임마다 소요되는 시간을 계산/저장 하기 위한 변수
+		float deltaTime = 0.0f;
+		float lastTime = 0.0f;
+		
 		while (!mainWindow.GetShouldClose())
 		{
-			/* Render here */
+			float now = glfwGetTime(); //현재 시간
+			deltaTime = now - lastTime; //소요 시간 = 현재 시간 - 이전 프레임 시간 
+			lastTime = now;
+
+
+			//poll event 부분은 유저 입력에 필요하므로 남겨둠
+			glfwPollEvents();
+
+			camera.KeyControl(mainWindow.GetKeys(), deltaTime);
+			camera.MouseControl(mainWindow.GetXChange(), mainWindow.GetYChange());
+		
 			renderer.Clear();
 
 			shader.Bind();
-			shader.SetUniform4f("u_Color", r, 0.3f, 0.8f, 1.0f); //여기서 다시 바인딩하고 데이터를 제공하는 것은 문제는 없음. Material(Shader + data)를 정의해서 분리하는 것이 일반적
+			shader.SetUniformMat4f("u_View", camera.calculateViewMatrix()); //카메라 변화에 따라 새로 계산된 view 행렬 셰이더에 전달
 
 			//Renderer로 이동
 			renderer.Draw(va, ib, shader);
-			
-			if (r > 1.0f)
-				increment = -0.05f;
-			if (r < 0.0f)
-				increment = 0.05f;
-
-			r += increment;
 
 			/* Swap front and back buffers */
 			mainWindow.SwapBuffers();
 
-			//poll event 부분은 유저 입력에 필요하므로 남겨둠
-			glfwPollEvents();
 		}
 	}
 

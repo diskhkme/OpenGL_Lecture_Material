@@ -7,10 +7,11 @@ layout(location = 1) in vec2 texCoord;
 out vec2 v_TexCoord; //버텍스 셰이더에서 추가적으로 출력하는 데이터(varying)
 
 uniform mat4 u_Projection; //CPU에서 전달될 (glm 라이브러리를 통해 생성된) 투영 행렬
+uniform mat4 u_View; //카메라를 통해 변화된 View 행렬
 
 void main()
 {
-	gl_Position = u_Projection * position; // 정점 위치를 투영 행렬과 곱
+	gl_Position = u_Projection * u_View * position; // 정점 위치를 투영 행렬과 곱
 	v_TexCoord = texCoord; //vertex 변환에 따라 바뀌지 않으므로 그대로 넘겨주면 됨
 };
 
