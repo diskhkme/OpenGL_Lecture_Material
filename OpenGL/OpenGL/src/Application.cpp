@@ -12,6 +12,7 @@
 #include "VertexArray.h"
 #include "Shader.h"
 #include "Texture.h"
+#include "Window.h"
 
 #include "glm/glm.hpp"
 #include "glm/gtx/transform.hpp"
@@ -23,37 +24,10 @@
 
 int main(void)
 {
-	GLFWwindow* window;
-
-	/* Initialize the library */
-	if (!glfwInit())
-		return -1;
-
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3); //Opengl 3.3 버전 사용
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-	/* Create a windowed mode window and its OpenGL context */
-	window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
-	if (!window)
-	{
-		glfwTerminate();
-		return -1;
-	}
-
-	/* Make the window's context current */
-	glfwMakeContextCurrent(window);
-
-	glfwSwapInterval(1); //1이면 vsync rate와 같은 속도로 화면 갱신
-
-	// glfwMakeContextCurrent가 호출된 후에 glewInit이 수행되어야 함
-	if (glewInit() != GLEW_OK)
-	{
-		std::cout << "Error\n";
-	}
-
-	std::cout << glGetString(GL_VERSION) << std::endl; //내 플랫폼의 GL_Version 출력해보기
-
+	//Window 관련 구현 Window 클래스로 이동
+	Window mainWindow{ 800,600 };
+	mainWindow.Initialize();
+	
 	{ 
 		
 		float positions[] = { //Vertex마다 텍스처 좌표(uv) 데이터 추가
@@ -67,10 +41,6 @@ int main(void)
 			0, 1, 2, //vertex 012로 이루어진 삼각형
 			2, 3, 0  //vertex 230로 이루어진 삼각형
 		};
-
-		//알파 채널 처리 방법 (chapter 10에서 다룰 예정)
-		GLCall(glEnable(GL_BLEND));
-		GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
 		//vao 생성 VertexArray가 담당
 		VertexArray va; 
@@ -106,7 +76,7 @@ int main(void)
 		float r = 0.0f;
 		float increment = 0.05f;
 		/* Loop until the user closes the window */
-		while (!glfwWindowShouldClose(window))
+		while (!mainWindow.GetShouldClose())
 		{
 			/* Render here */
 			renderer.Clear();
@@ -125,14 +95,13 @@ int main(void)
 			r += increment;
 
 			/* Swap front and back buffers */
-			glfwSwapBuffers(window);
+			mainWindow.SwapBuffers();
 
-			/* Poll for and process events */
+			//poll event 부분은 유저 입력에 필요하므로 남겨둠
 			glfwPollEvents();
 		}
 	}
-	
 
-	glfwTerminate();
+	
 	return 0;
 }
