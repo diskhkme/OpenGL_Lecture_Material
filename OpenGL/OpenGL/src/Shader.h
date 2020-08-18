@@ -31,6 +31,7 @@ public:
 
 	//Set Uniforms
 	void SetUniform1i(const std::string& name, int value); //shader slot을 명시하기 위한 int uniform 설정 함수 추가
+	void SetUniform3f(const std::string& name, float v0, float v1, float v2);
 	void SetUniform4f(const std::string& name, float v0, float v1, float v2, float v3);
 	void SetUniform1f(const std::string& name, float value);
 	void SetUniformMat4f(const std::string& name, const glm::mat4& matrix); //4x4 matrix를 전달하기 위한 함수 추가

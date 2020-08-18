@@ -16,6 +16,7 @@
 #include "Window.h"
 #include "Camera.h"
 #include "Model.h"
+#include "Light.h"
 
 #include "glm/glm.hpp"
 #include "glm/gtx/transform.hpp"
@@ -55,6 +56,8 @@ int main(void)
 		
 		Renderer renderer;
 
+		Light mainLight{ glm::vec3{1.0f,1.0f,1.0f}, 0.2f };
+
 		//매 프레임마다 소요되는 시간을 계산/저장 하기 위한 변수
 		float deltaTime = 0.0f;
 		float lastTime = 0.0f;
@@ -65,7 +68,6 @@ int main(void)
 			deltaTime = now - lastTime; //소요 시간 = 현재 시간 - 이전 프레임 시간 
 			lastTime = now;
 
-
 			//poll event 부분은 유저 입력에 필요하므로 남겨둠
 			glfwPollEvents();
 
@@ -75,6 +77,7 @@ int main(void)
 			renderer.Clear();
 
 			shader.Bind();
+			mainLight.UseLight(shader); //light 관련한 uniform setting
 			shader.SetUniformMat4f("u_View", camera.calculateViewMatrix()); //카메라 변화에 따라 새로 계산된 view 행렬 셰이더에 전달
 
 			teapot.RenderModel(shader);

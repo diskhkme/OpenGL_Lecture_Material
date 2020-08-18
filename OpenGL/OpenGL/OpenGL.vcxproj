@@ -138,6 +138,7 @@
     <ClCompile Include="src\Application.cpp" />
     <ClCompile Include="src\Camera.cpp" />
     <ClCompile Include="src\IndexBuffer.cpp" />
+    <ClCompile Include="src\Light.cpp" />
     <ClCompile Include="src\Model.cpp" />
     <ClCompile Include="src\Window.cpp" />
     <ClCompile Include="src\Renderer.cpp" />
@@ -264,6 +265,7 @@
   <ItemGroup>
     <ClInclude Include="src\Camera.h" />
     <ClInclude Include="src\IndexBuffer.h" />
+    <ClInclude Include="src\Light.h" />
     <ClInclude Include="src\Model.h" />
     <ClInclude Include="src\Window.h" />
     <ClInclude Include="src\Renderer.h" />
