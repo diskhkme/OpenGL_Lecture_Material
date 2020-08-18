@@ -56,7 +56,8 @@ int main(void)
 		
 		Renderer renderer;
 
-		Light mainLight{ glm::vec3{1.0f,1.0f,1.0f}, 0.2f };
+		Light mainLight{ glm::vec3{1.0f,1.0f,1.0f}, 0.2f ,
+						glm::vec3{2.0f,-1.0f,-2.0f}, 1.0f };
 
 		//매 프레임마다 소요되는 시간을 계산/저장 하기 위한 변수
 		float deltaTime = 0.0f;

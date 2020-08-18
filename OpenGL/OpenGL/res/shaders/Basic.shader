@@ -18,7 +18,9 @@ void main()
 {
 	gl_Position = u_Projection * u_View * u_Model * vec4(position,1.0); // 정점 위치를 투영 행렬과 곱
 	v_TexCoord = texCoord; //vertex 변환에 따라 바뀌지 않으므로 그대로 넘겨주면 됨
-	v_Normal = normal;
+
+	//https://www.youtube.com/watch?v=d3EUd2HxsO4&app=desktop
+	v_Normal = mat3(transpose(inverse(u_Model))) * normal;
 };
 
 #shader fragment
@@ -29,23 +31,13 @@ layout(location = 0) out vec4 color;
 //셰이더 코드에서 구조체 사용 가능
 struct DirectionalLight
 {
-	//강의 자료에서 s_a에 해당 (acolor * aintensity = s_a)
-	vec3 lightColor; 
+	vec3 lightColor;
+	//for ambient
 	float ambientIntensity;
+	//for diffuse 
+	vec3 direction;
+	float diffuseIntensity;
 };
-
-//-- 아래와 같이 상세하게 Material의 속성별 color를 정하는 경우도 있지만,
-//-- 물체의 diffuse color와 ambient/specular 컬러가 크게 다르지 않다고 가정하여 간략화 가능
-//-- 즉, m_a = m_d & m_s = m_d 로 가정
-//-- m_d는? texture color
-
-//struct Material {
-//	vec3 ambient; //m_a
-//	vec3 diffuse; //m_d
-//	vec3 specular; //m_s
-//	float shininess; //sh
-//};
-//uniform Material u_Material;
 
 in vec2 v_TexCoord; //버텍스 셰이더에서 넘겨받은 데이터
 in vec3 v_Normal;
@@ -56,6 +48,13 @@ uniform DirectionalLight u_DirectionalLight;
 void main()
 {
 	vec3 lightAmbient = u_DirectionalLight.lightColor * u_DirectionalLight.ambientIntensity;
-	color = texture(u_Texture, v_TexCoord) * vec4(lightAmbient,1.0);
+
+	//병렬 성능을 위해서 if 분기문은 만들지 않는 것이 필요! (대신 max 함수 사용)
+	//light 방향을 뒤집는 것에 주의
+	//normal은 단위 벡터로 넘어오지만, scan conversion동안 보간되어 길이가 변할 수 있으므로 다시 normalization 필요!
+	float diffuseFactor = max(dot(normalize(v_Normal), normalize(-u_DirectionalLight.direction)), 0.0);
+	vec3 lightDiffuse = u_DirectionalLight.lightColor * u_DirectionalLight.diffuseIntensity * diffuseFactor;
+
+	color = texture(u_Texture, v_TexCoord) * vec4(lightAmbient + lightDiffuse,1.0);
 	//color = vec4(1.0, 0.0, 0.0, 1.0);
 };
