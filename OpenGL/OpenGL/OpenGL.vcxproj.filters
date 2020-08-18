@@ -48,6 +48,9 @@
     <ClCompile Include="src\Camera.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="src\Model.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="res\shaders\Basic.shader" />
@@ -378,6 +381,7 @@
     <None Include="src\vendor\glm\gtx\wrap.inl">
       <Filter>헤더 파일</Filter>
     </None>
+    <None Include="assimp-vc140-mt.dll" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Renderer.h">
@@ -837,6 +841,9 @@
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="src\Camera.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Model.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>

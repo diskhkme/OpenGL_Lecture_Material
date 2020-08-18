@@ -74,6 +74,13 @@ int Window::Initialize()
 	//알파 채널 처리 방법 (chapter 10에서 다룰 예정)
 	GLCall(glEnable(GL_BLEND));
 	GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+
+	//cull face (chapter 7, back face culling)
+	GLCall(glEnable(GL_CULL_FACE));
+	GLCall(glCullFace(GL_BACK));
+
+	//depth test(chapter 10, z-buffering)
+	GLCall(glEnable(GL_DEPTH_TEST));
 }
 
 float Window::GetXChange()

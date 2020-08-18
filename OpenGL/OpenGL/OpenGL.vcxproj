@@ -76,12 +76,12 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies/GLFW/include;src/vendor/;$(SolutionDir)Dependencies/GLEW/include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies/GLFW/include;src/vendor/;$(SolutionDir)Dependencies/Assimp/include;$(SolutionDir)Dependencies/GLEW/include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>GLEW_STATIC;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>$(SolutionDir)Dependencies/GLFW/lib-vc2015;$(SolutionDir)Dependencies/GLEW/lib/Release/Win32</AdditionalLibraryDirectories>
-      <AdditionalDependencies>glew32s.lib;glfw3.lib;opengl32.lib;User32.lib;Gdi32.lib;Shell32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)Dependencies/GLFW/lib-vc2015;$(SolutionDir)Dependencies/Assimp/lib/x86;$(SolutionDir)Dependencies/GLEW/lib/Release/Win32</AdditionalLibraryDirectories>
+      <AdditionalDependencies>assimp.lib;glew32s.lib;glfw3.lib;opengl32.lib;User32.lib;Gdi32.lib;Shell32.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -90,12 +90,12 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies/GLFW/include;src/vendor/;$(SolutionDir)Dependencies/GLEW/include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies/GLFW/include;src/vendor/;$(SolutionDir)Dependencies/Assimp/include;$(SolutionDir)Dependencies/GLEW/include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>GLEW_STATIC;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>$(SolutionDir)Dependencies/GLFW/lib-vc2015;$(SolutionDir)Dependencies/GLEW/lib/Release/Win32</AdditionalLibraryDirectories>
-      <AdditionalDependencies>glew32s.lib;glfw3.lib;opengl32.lib;User32.lib;Gdi32.lib;Shell32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)Dependencies/GLFW/lib-vc2015;$(SolutionDir)Dependencies/Assimp/lib/x86;$(SolutionDir)Dependencies/GLEW/lib/Release/Win32</AdditionalLibraryDirectories>
+      <AdditionalDependencies>assimp.lib;glew32s.lib;glfw3.lib;opengl32.lib;User32.lib;Gdi32.lib;Shell32.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -106,14 +106,14 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies/GLFW/include;src/vendor/;$(SolutionDir)Dependencies/GLEW/include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies/GLFW/include;src/vendor/;$(SolutionDir)Dependencies/Assimp/include;$(SolutionDir)Dependencies/GLEW/include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>GLEW_STATIC;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>$(SolutionDir)Dependencies/GLFW/lib-vc2015;$(SolutionDir)Dependencies/GLEW/lib/Release/Win32</AdditionalLibraryDirectories>
-      <AdditionalDependencies>glew32s.lib;glfw3.lib;opengl32.lib;User32.lib;Gdi32.lib;Shell32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)Dependencies/GLFW/lib-vc2015;$(SolutionDir)Dependencies/Assimp/lib/x86;$(SolutionDir)Dependencies/GLEW/lib/Release/Win32</AdditionalLibraryDirectories>
+      <AdditionalDependencies>assimp.lib;glew32s.lib;glfw3.lib;opengl32.lib;User32.lib;Gdi32.lib;Shell32.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -124,20 +124,21 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies/GLFW/include;src/vendor/;$(SolutionDir)Dependencies/GLEW/include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies/GLFW/include;src/vendor/;$(SolutionDir)Dependencies/Assimp/include;$(SolutionDir)Dependencies/GLEW/include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>GLEW_STATIC;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>$(SolutionDir)Dependencies/GLFW/lib-vc2015;$(SolutionDir)Dependencies/GLEW/lib/Release/Win32</AdditionalLibraryDirectories>
-      <AdditionalDependencies>glew32s.lib;glfw3.lib;opengl32.lib;User32.lib;Gdi32.lib;Shell32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)Dependencies/GLFW/lib-vc2015;$(SolutionDir)Dependencies/Assimp/lib/x86;$(SolutionDir)Dependencies/GLEW/lib/Release/Win32</AdditionalLibraryDirectories>
+      <AdditionalDependencies>assimp.lib;glew32s.lib;glfw3.lib;opengl32.lib;User32.lib;Gdi32.lib;Shell32.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\Application.cpp" />
     <ClCompile Include="src\Camera.cpp" />
     <ClCompile Include="src\IndexBuffer.cpp" />
+    <ClCompile Include="src\Model.cpp" />
     <ClCompile Include="src\Window.cpp" />
     <ClCompile Include="src\Renderer.cpp" />
     <ClCompile Include="src\Shader.cpp" />
@@ -148,6 +149,7 @@
     <ClCompile Include="src\VertexBuffer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="assimp-vc140-mt.dll" />
     <None Include="res\shaders\Basic.shader" />
     <None Include="src\vendor\glm\detail\func_common.inl" />
     <None Include="src\vendor\glm\detail\func_exponential.inl" />
@@ -262,6 +264,7 @@
   <ItemGroup>
     <ClInclude Include="src\Camera.h" />
     <ClInclude Include="src\IndexBuffer.h" />
+    <ClInclude Include="src\Model.h" />
     <ClInclude Include="src\Window.h" />
     <ClInclude Include="src\Renderer.h" />
     <ClInclude Include="src\Shader.h" />
