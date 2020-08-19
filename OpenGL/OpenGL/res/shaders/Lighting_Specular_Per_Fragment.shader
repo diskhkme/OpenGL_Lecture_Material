@@ -10,20 +10,26 @@ layout(location = 2) in vec3 normal;
 out vec2 v_TexCoord; //버텍스 셰이더에서 추가적으로 출력하는 데이터(varying)
 out vec3 v_Normal;
 out vec3 v_WorldPosition;
+out vec4 v_DirectionalLightSpacePos; //Light 기준의 fragment position
 
 uniform mat4 u_Model; //world 변환 행렬
 uniform mat4 u_View; //카메라를 통해 변화된 View 행렬
 uniform mat4 u_Projection; //CPU에서 전달될 (glm 라이브러리를 통해 생성된) 투영 행렬
+uniform mat4 u_DirectionalLightTransform;
 
 void main()
 {
 	gl_Position = u_Projection * u_View * u_Model * vec4(position, 1.0); // 정점 위치를 투영 행렬과 곱
 	v_TexCoord = texCoord; //vertex 변환에 따라 바뀌지 않으므로 그대로 넘겨주면 됨
 
-	//https://www.youtube.com/watch?v=d3EUd2HxsO4&app=desktop
 	v_Normal = mat3(transpose(inverse(u_Model))) * normal;
 
 	v_WorldPosition = (u_Model * vec4(position, 1.0)).xyz; //정점의 World space 좌표
+
+	//이 셰이더의 u_View는 카메라 기준의 view 행렬임
+	//그림자 계산을 위해서는 해당 fragment가 카메라 기준으로 어느 위치인지 알아야 하기 때문에
+	//아래와 같이 계산하여 varying으로 fragment로 넘김
+	v_DirectionalLightSpacePos = u_DirectionalLightTransform * u_Model*vec4(position, 1.0);
 };
 
 #shader fragment
@@ -55,36 +61,56 @@ struct Material
 in vec2 v_TexCoord; //버텍스 셰이더에서 넘겨받은 데이터
 in vec3 v_Normal;
 in vec3 v_WorldPosition;
+in vec4 v_DirectionalLightSpacePos; //Light 기준의 fragment position
 
 uniform vec3 u_EyePosition; //specular 계산을 위한 카메라 위치
 uniform sampler2D u_Texture; //texture는 sampler2D 타입
 uniform DirectionalLight u_DirectionalLight;
 uniform Material u_Material;
+uniform sampler2D u_DirectionalShadowMap; //shadow map 텍스처
+
+float CalcDirectionalShadowFactor(DirectionalLight light)
+{
+	//이 정보는 perspective division을 자동으로 하지 않기때문에 직접 해주어야 함
+	vec3 projCoords = v_DirectionalLightSpacePos.xyz / v_DirectionalLightSpacePos.w;
+	projCoords = (projCoords * 0.5) + 0.5; //[-1,1] (NDC) -> [0,1] (Depth) 변환
+
+	float closest = texture(u_DirectionalShadowMap, projCoords.xy).r; //shadow map 텍스처에 저장된 깊이 정보 샘플링
+	float current = projCoords.z; //실제 frag와 light간의 깊이
+
+	float shadow = current > closest ? 1.0 : 0.0; //텍스처에 저장된 값이 더 작으면(그림자 영역이면) 1 반환
+
+	return shadow;
+}
 
 //빛 기본 정보와 방향이 주어졌을 때, rendering eqn에 따른 색상 계산
-vec3 CalcLight(Light light, vec3 direction)
+vec3 CalcLight(Light light, vec3 direction, float shadowFactor) //shadow Factor 추가
 {
 	vec3 lightAmbient = light.lightColor * light.ambientIntensity;
+	vec3 normal = normalize(v_Normal); //(주의!)법선 벡터 정규화 해야 함!
 
 	vec3 lightDir = normalize(-direction);
-	float diffuseFactor = max(dot(normalize(v_Normal), lightDir), 0.0);
+	float diffuseFactor = max(dot(normal, lightDir), 0.0);
 	vec3 lightDiffuse = light.lightColor * light.diffuseIntensity * diffuseFactor;
 
 	vec3 fragToEye = normalize(u_EyePosition - v_WorldPosition);
-	vec3 rVec = 2.0 * v_Normal * dot(v_Normal, lightDir) - lightDir; //r vector 계산
+	vec3 rVec = 2.0 * normal * dot(normal, lightDir) - lightDir; //r vector 계산
 	vec3 lightSpecular = pow(max(dot(rVec, fragToEye), 0.0), u_Material.shininess) * light.lightColor * u_Material.specularIntensity;
 
-	return (lightAmbient + lightDiffuse + lightSpecular); //light와 direction에 의한 light color 반환
+	//shadow factor가 1이면 diffuse와 specular 적용 안함(ambient는 전역 조명이므로 그림자여도 적용)
+	return (lightAmbient + (1.0-shadowFactor)*(lightDiffuse + lightSpecular)); //light와 direction에 의한 light color 반환
 }
 
 //Directional Light의 경우 색상 계산
 vec3 CalcDirectionalLight()
 {
-	return CalcLight(u_DirectionalLight.base, u_DirectionalLight.direction);
+	float shadowFactor = CalcDirectionalShadowFactor(u_DirectionalLight);
+	return CalcLight(u_DirectionalLight.base, u_DirectionalLight.direction, shadowFactor);
 }
 
 void main()
 {
+	
 	vec3 lightColor = CalcDirectionalLight();
 	color = texture(u_Texture, v_TexCoord) * vec4(lightColor, 1.0);
 };

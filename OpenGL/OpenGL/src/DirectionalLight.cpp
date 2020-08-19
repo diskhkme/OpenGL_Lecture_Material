@@ -6,14 +6,15 @@ DirectionalLight::DirectionalLight()
 	: Light{}, m_Direction{glm::vec3{0.0f, -1.0f, 0.0f}}
 {
 	//directional light는 방향이 하나이므로 shadow map 생성에 orthographic projection 사용함
-	m_LightProjection = glm::ortho(-5.0f, 5.0f, -5.0f, 5.0f, 0.1f, 20.0f);
+	//m_LightProjection = glm::ortho(-5.0f, 5.0f, -5.0f, 5.0f, 0.1f, 20.0f);
 }
 
 DirectionalLight::DirectionalLight(int shadowWidth, int shadowHeight,
 	glm::vec3 aColor, float aIntensity, glm::vec3 direction, float dIntensity)
 	:Light{shadowWidth, shadowHeight, aColor,aIntensity, dIntensity}, m_Direction{direction}
 {
-	m_LightProjection = glm::ortho(-5.0f, 5.0f, -5.0f, 5.0f, 0.1f, 20.0f);
+	//m_LightProjection = glm::ortho(-5.0f, 5.0f, -5.0f, 5.0f, 0.1f, 20.0f);
+	m_LightProjection = glm::ortho(-20.0f, 20.0f, -20.0f, 20.0f, 0.1f, 100.0f);
 }
 
 DirectionalLight::~DirectionalLight()
