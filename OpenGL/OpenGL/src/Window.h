@@ -25,7 +25,7 @@ public:
 	bool* GetKeys() { return m_Keys; }
 	float GetXChange();
 	float GetYChange();
-
+	void ChangeViewPort(int width, int height);
 private:
 	//glfw À©µµ¿ì °´Ã¼¸¦ ¸â¹ö·Î °¡Áü
 	GLFWwindow *m_MainWindow;

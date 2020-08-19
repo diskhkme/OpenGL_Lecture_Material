@@ -28,43 +28,57 @@ int main(void)
 {
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF); //memory leak check
 
+	int bufferWidth = 800;
+	int bufferHeight = 600;
 	//Window 관련 구현 Window 클래스로 이동
-	Window mainWindow{ 800,600 };
+	Window mainWindow{ bufferWidth,bufferHeight };
 	mainWindow.Initialize();
 	
 	{ 
 		//외부 모델을 불러와서 사용하기 위해 Model 클래스 정의
 		Model teapot;
 		teapot.LoadModel("res/models/teapot.obj"); //obj와 같은 3D 모델 파일을 입력 가능
+
+		Model plane;
+		plane.LoadModel("res/models/SubdividedPlane_100.obj");
 		
 		
 		//yaw 값이 0일때는 front가 [1,0,0]이므로, yaw를 90으로 해서 초기 front가 [0,0,-1]이 되도록 함
 		Camera camera{ glm::vec3{0.0f,0.0f,15.0f}, glm::vec3{0.0f,1.0f,0.0f}, -90.0f, 0.0f, 5.0f, 0.5f };
 
-		//앞뒤 이동 효과를 올바로 보기 위해서는 perspective projection 행렬 필요
 		float aspect = (float)mainWindow.GetBufferWidth() / mainWindow.GetBufferHeight();
 		glm::mat4 proj = glm::perspective(45.0f, aspect, 0.1f, 100.0f);
 
-		//--------------Texture 생성---------//
-		Texture texture{ "res/textures/uvchecker.jpg" };
-		texture.Bind(); //0번 슬롯에 바인딩
+		////--------------Texture 생성---------//
+		//Texture texture{ "res/textures/uvchecker.jpg" };
+		//texture.Bind(); //0번 슬롯에 바인딩
 
 		//---------Shader 생성---------------//
-		Shader shaderPerFragment{ "res/shaders/Lighting_Specular_Per_Fragment.shader" };
-		shaderPerFragment.Bind();
-		shaderPerFragment.SetUniformMat4f("u_Model", glm::mat4{ 1.0f }); //Mat4{1.0}은 단위 행렬
-		shaderPerFragment.SetUniformMat4f("u_Projection", proj);
-		shaderPerFragment.SetUniformMat4f("u_View", camera.CalculateViewMatrix());
-		shaderPerFragment.SetUniform1i("u_Texture", 0);
+		//Shader shaderPerFragment{ "res/shaders/DirectionalShadowMap.shader" };
+		//shaderPerFragment.Bind();
+		//shaderPerFragment.SetUniformMat4f("u_Model", glm::mat4{ 1.0f }); //Mat4{1.0}은 단위 행렬
+		//shaderPerFragment.SetUniformMat4f("u_Projection", proj);
+		//shaderPerFragment.SetUniformMat4f("u_View", camera.CalculateViewMatrix());
+		
+		//테스트를 위해 간단히 depth map을 텍스처로 활용하는 shader 작성
+		Shader simpleDepthVisualizeShader{ "res/shaders/DepthMapVisualize.shader" };
+		simpleDepthVisualizeShader.Bind();
+		simpleDepthVisualizeShader.SetUniformMat4f("u_Model", glm::mat4{ 1.0f }); //Mat4{1.0}은 단위 행렬
+		simpleDepthVisualizeShader.SetUniformMat4f("u_Projection", proj);
+		simpleDepthVisualizeShader.SetUniformMat4f("u_View", camera.CalculateViewMatrix());
+		//depth map을 그리는 shader
+		Shader shaderShadowMap{ "res/shaders/DirectionalShadowMap.shader" };
 		
 		Renderer renderer;
 
-		DirectionalLight mainLight{ glm::vec3{1.0f,1.0f,1.0f}, 0.3f ,
-						glm::vec3{2.0f,-1.0f,-2.0f}, 0.3f }; //specular 효과를 잘 보기위해 diffuse를 약간 줄임
+		//shadow Map을 그리는 Directional Light
+		DirectionalLight mainLight{ 1024,1024,
+						glm::vec3{1.0f,1.0f,1.0f}, 0.3f ,
+						glm::vec3{0.0f,0.0f,-15.0f}, 0.3f }; //specular 효과를 잘 보기위해 diffuse를 약간 줄임
 
-		std::vector<Material> materials;
-		materials.emplace_back(5.0f, 32.0f); //반사도가 높은 물체. Intensity와 shininess factor가 큼
-		materials.emplace_back(0.3f, 4.0f);  //반사도가 낮은 물체
+		//std::vector<Material> materials;
+		//materials.emplace_back(5.0f, 32.0f); //반사도가 높은 물체. Intensity와 shininess factor가 큼
+		//materials.emplace_back(0.3f, 4.0f);  //반사도가 낮은 물체
 		
 		//매 프레임마다 소요되는 시간을 계산/저장 하기 위한 변수
 		float deltaTime = 0.0f;
@@ -88,19 +102,47 @@ int main(void)
 			
 			ChangeProgramAndMaterial(materialNum, mainWindow.GetKeys());
 
-			renderer.Clear();
+			//-----------이제 그리기 pass는 두 개로 나뉘어짐 1. shadow map / 2. scene--------//
 			
-			//per-fragment object
-			shaderPerFragment.Bind();
-			mainLight.UseLight(shaderPerFragment); //light 관련한 uniform setting
-			materials[materialNum].UseMaterial(shaderPerFragment); //반사도 높은 물체
-			shaderPerFragment.SetUniformMat4f("u_Model", glm::translate(glm::vec3{ 0.0f, 0.0f, 0.0f })); //Mat4{1.0}은 단위 행렬
-			shaderPerFragment.SetUniformMat4f("u_View", camera.CalculateViewMatrix()); //카메라 변화에 따라 새로 계산된 view 행렬 셰이더에 전달
-			shaderPerFragment.SetUniform3f("u_EyePosition", camPosition.x, camPosition.y, camPosition.z);
-			teapot.RenderModel(shaderPerFragment);
-			shaderPerFragment.Unbind();
+			//1.Shadow Map Pass
+			{
+				//뷰포트는 shadow map 버퍼 크기로
+				int width = mainLight.GetShadowMap()->GetShadowWidth();
+				int height = mainLight.GetShadowMap()->GetShadowWidth();
+				mainWindow.ChangeViewPort(width, height);
+				mainLight.GetShadowMap()->Bind(); //실제로 하는 것은 프레임 버퍼 바인딩
+				renderer.Clear(); //depth만 clear해도 됨
+				shaderShadowMap.Bind();
+				mainLight.UseLightForShadow(shaderShadowMap);
+
+				//모델 렌더링(모델이 많고 씬이 복잡하면 별도의 렌더링 함수로 분리)
+				shaderShadowMap.SetUniformMat4f("u_Model", glm::scale(glm::vec3{ 0.3f, 0.3f, 0.3f })); //Mat4{1.0}은 단위 행렬
+				teapot.RenderModel(shaderShadowMap);
+				
+				mainLight.GetShadowMap()->Unbind(); //frame buffer를 unbind해야 pass 2에서 화면에 그림
+			}
 
 
+			//2.Render Pass
+			//테스트를 위해 먼저 그림자를 직접 그리지 않고 pass 1을 통해 도출된 depth map을 화면에 그려봄
+			{
+				renderer.Clear();
+				mainWindow.ChangeViewPort(bufferWidth, bufferHeight);
+				simpleDepthVisualizeShader.Bind();
+				//새로 추가한 Shadow 그리기 관련 uniform
+				mainLight.GetShadowMap()->Read(1); //119 line의 슬롯과 같아야 함
+				mainLight.UseLight(simpleDepthVisualizeShader, 1); //light 관련한 uniform setting
+				//materials[materialNum].UseMaterial(shaderPerFragment); //반사도 높은 물체
+				simpleDepthVisualizeShader.SetUniformMat4f("u_Model", glm::rotate(glm::scale(glm::vec3{ 0.1f, 0.1f, 0.1f }), 90.0f, glm::vec3{ 1.0f,0.0f,0.0f })); //Mat4{1.0}은 단위 행렬
+				simpleDepthVisualizeShader.SetUniformMat4f("u_View", camera.CalculateViewMatrix()); //카메라 변화에 따라 새로 계산된 view 행렬 셰이더에 전달
+				//shaderPerFragment.SetUniform3f("u_EyePosition", camPosition.x, camPosition.y, camPosition.z);
+
+				
+
+				plane.RenderModel(simpleDepthVisualizeShader);
+				//shaderPerFragment.Unbind();
+			}
+			
 			/* Swap front and back buffers */
 			mainWindow.SwapBuffers();
 

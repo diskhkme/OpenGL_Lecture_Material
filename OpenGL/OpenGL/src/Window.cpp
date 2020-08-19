@@ -97,6 +97,11 @@ float Window::GetYChange()
 	return theChange;
 }
 
+void Window::ChangeViewPort(int width, int height)
+{
+	GLCall(glViewport(0, 0, width, height));
+}
+
 void Window::HandleKeys(GLFWwindow * window, int key, int code, int action, int mode)
 	//key: 어떤 키인지, code: 플랫폼 특정 scan code(사용안함)
 	//action: 키에서 발생한 행동(눌림, 뗌 등), mode: 컨트롤, 알트, 쉬프트 등 입력

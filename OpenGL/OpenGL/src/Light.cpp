@@ -7,14 +7,17 @@ Light::Light()
 {
 }
 
-Light::Light(glm::vec3 aColor, float aIntensity, float dIntensity)
+Light::Light(int shadowWidth, int shadowHeight, glm::vec3 aColor, float aIntensity, float dIntensity)
 	: m_LightColor{ aColor }, m_AmbientIntensity{ aIntensity },
 	m_DiffuseIntensity{ dIntensity }
 {
+	//Light °´Ã¼°¡ µ¿Àû ÇÒ´çµÈ ShadowMap °´Ã¼¸¦ °¡Áü
+	m_ShadowMap = new ShadowMap{shadowWidth, shadowHeight};
 }
 
 
 Light::~Light()
 {
+	delete m_ShadowMap;
 }
 
