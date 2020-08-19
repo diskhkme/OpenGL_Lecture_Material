@@ -17,7 +17,8 @@ public:
 	void KeyControl(bool *keys, float deltaTime);
 	void MouseControl(float xChange, float yChange);
 
-	glm::mat4 calculateViewMatrix();
+	glm::mat4 CalculateViewMatrix();
+	glm::vec3 GetEyePosition() {return m_Eye;} //specular 계산을 위한 카메라 위치 반환
 private:
 	glm::vec3 m_Eye, m_Front, m_Up, m_Right, m_WorldUp;
 	float m_Yaw, m_Pitch;

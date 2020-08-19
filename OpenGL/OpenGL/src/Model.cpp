@@ -49,7 +49,7 @@ void Model::ClearModel()
 
 }
 
-void Model::RenderModel(Shader shader)
+void Model::RenderModel(Shader& shader)
 {
 	for (int i = 0; i < VAOs.size(); i++)
 	{

@@ -23,7 +23,8 @@ public:
 	void LoadModel(const std::string& fileName);
 	void ClearModel();
 
-	void RenderModel(Shader shader);
+	//참조자로 받지 않으면 shader 복사 객체가 stack에서 없어질때 소멸자가 호출되어 shader가 delete될 수 있음에 주의!
+	void RenderModel(Shader& shader);
 
 private:
 	void LoadNode(aiNode* node, const aiScene* scene);

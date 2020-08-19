@@ -139,6 +139,7 @@
     <ClCompile Include="src\Camera.cpp" />
     <ClCompile Include="src\IndexBuffer.cpp" />
     <ClCompile Include="src\Light.cpp" />
+    <ClCompile Include="src\Material.cpp" />
     <ClCompile Include="src\Model.cpp" />
     <ClCompile Include="src\Window.cpp" />
     <ClCompile Include="src\Renderer.cpp" />
@@ -151,7 +152,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="assimp-vc140-mt.dll" />
-    <None Include="res\shaders\Basic.shader" />
+    <None Include="res\shaders\Lighting_Specular_Per_Vertex.shader" />
     <None Include="src\vendor\glm\detail\func_common.inl" />
     <None Include="src\vendor\glm\detail\func_exponential.inl" />
     <None Include="src\vendor\glm\detail\func_geometric.inl" />
@@ -263,9 +264,11 @@
     <None Include="src\vendor\glm\gtx\wrap.inl" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="res\shaders\Lighting_Specular_Per_Fragment.shader" />
     <ClInclude Include="src\Camera.h" />
     <ClInclude Include="src\IndexBuffer.h" />
     <ClInclude Include="src\Light.h" />
+    <ClInclude Include="src\Material.h" />
     <ClInclude Include="src\Model.h" />
     <ClInclude Include="src\Window.h" />
     <ClInclude Include="src\Renderer.h" />

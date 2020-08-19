@@ -70,7 +70,7 @@ void Camera::MouseControl(float xChange, float yChange)
 	Update();
 }
 
-glm::mat4 Camera::calculateViewMatrix()
+glm::mat4 Camera::CalculateViewMatrix()
 {
 	glm::mat4 view = glm::lookAt(m_Eye, m_Eye + m_Front, m_Up);
 	//std::cout << glm::to_string(view) << std::endl;
