@@ -31,15 +31,19 @@ void main()
 
 layout(location = 0) out vec4 color;
 
+//셰이더에서도 Composition을 통한 구조 정리
+struct Light
+{
+	vec3 lightColor;
+	float ambientIntensity;
+	float diffuseIntensity;
+};
+
 //셰이더 코드에서 구조체 사용 가능
 struct DirectionalLight
 {
-	vec3 lightColor;
-	//for ambient
-	float ambientIntensity;
-	//for diffuse 
+	Light base;
 	vec3 direction;
-	float diffuseIntensity;
 };
 
 struct Material
@@ -57,22 +61,30 @@ uniform sampler2D u_Texture; //texture는 sampler2D 타입
 uniform DirectionalLight u_DirectionalLight;
 uniform Material u_Material;
 
-void main()
+//빛 기본 정보와 방향이 주어졌을 때, rendering eqn에 따른 색상 계산
+vec3 CalcLight(Light light, vec3 direction)
 {
-	vec3 lightAmbient = u_DirectionalLight.lightColor * u_DirectionalLight.ambientIntensity;
+	vec3 lightAmbient = light.lightColor * light.ambientIntensity;
 
-	//병렬 성능을 위해서 if 분기문은 만들지 않는 것이 필요! (대신 max 함수 사용)
-	//light 방향을 뒤집는 것에 주의
-	//normal은 단위 벡터로 넘어오지만, scan conversion동안 보간되어 길이가 변할 수 있으므로 다시 normalization 필요!
-	vec3 lightDir = normalize(-u_DirectionalLight.direction);
+	vec3 lightDir = normalize(-direction);
 	float diffuseFactor = max(dot(normalize(v_Normal), lightDir), 0.0);
-	vec3 lightDiffuse = u_DirectionalLight.lightColor * u_DirectionalLight.diffuseIntensity * diffuseFactor;
+	vec3 lightDiffuse = light.lightColor * light.diffuseIntensity * diffuseFactor;
 
 	vec3 fragToEye = normalize(u_EyePosition - v_WorldPosition);
 	vec3 rVec = 2.0 * v_Normal * dot(v_Normal, lightDir) - lightDir; //r vector 계산
-	vec3 lightSpecular = pow(max(dot(rVec, fragToEye), 0.0), u_Material.shininess) * u_DirectionalLight.lightColor * u_Material.specularIntensity;
+	vec3 lightSpecular = pow(max(dot(rVec, fragToEye), 0.0), u_Material.shininess) * light.lightColor * u_Material.specularIntensity;
 
-	color = texture(u_Texture, v_TexCoord) * vec4(lightAmbient + lightDiffuse + lightSpecular, 1.0);
-	//color = texture(u_Texture, v_TexCoord) * vec4(lightAmbient + lightDiffuse, 1.0);
-	//color = vec4(1.0, 0.0, 0.0, 1.0);
+	return (lightAmbient + lightDiffuse + lightSpecular); //light와 direction에 의한 light color 반환
+}
+
+//Directional Light의 경우 색상 계산
+vec3 CalcDirectionalLight()
+{
+	return CalcLight(u_DirectionalLight.base, u_DirectionalLight.direction);
+}
+
+void main()
+{
+	vec3 lightColor = CalcDirectionalLight();
+	color = texture(u_Texture, v_TexCoord) * vec4(lightColor, 1.0);
 };

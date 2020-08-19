@@ -3,18 +3,20 @@
 #include "glm/glm.hpp"
 #include "Shader.h"
 
+//다양한 종류의 Light가 있을 수 있으므로, light는 Base class로 하고,
+//특정 light를 유도 클래스로 생성하도록 함.
+
 class Light
 {
 public:
 	Light();
-	Light(glm::vec3 aColor, float aIntensity,
-			glm::vec3 lightDir, float dIntensity);
+	Light(glm::vec3 aColor, float aIntensity, float dIntensity); //모든 light가 방향을 갖는 것은 아님
 	~Light();
 
-	void UseLight(Shader& shader);
-private:
+	//입력해야 하는 uniform도 light 종류에 따라 다름
+protected:
 	glm::vec3 m_LightColor; //s_a & s_d & s_s의 색상
-	glm::vec3 m_Direction; //directional light 방향
+
 	float m_AmbientIntensity; //Ambient 세기 조절 (s_a = m_LightColor * m_AmbientIntensity)
 	float m_DiffuseIntensity; //Diffuse 세기 조절 (s_a = m_LightColor * m_AmbientIntensity)
 };

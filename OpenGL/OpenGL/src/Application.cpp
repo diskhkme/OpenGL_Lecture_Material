@@ -16,13 +16,13 @@
 #include "Window.h"
 #include "Camera.h"
 #include "Model.h"
-#include "Light.h"
+#include "DirectionalLight.h"
 #include "Material.h"
 
 #include "glm/glm.hpp"
 #include "glm/gtx/transform.hpp"
 
-void ChangeProgramAndMaterial(int& num, int& materialNum, bool * keys);
+void ChangeProgramAndMaterial(int& materialNum, bool * keys);
 
 int main(void)
 {
@@ -50,13 +50,6 @@ int main(void)
 		texture.Bind(); //0번 슬롯에 바인딩
 
 		//---------Shader 생성---------------//
-		Shader shaderPerVertex{ "res/shaders/Lighting_Specular_Per_Vertex.shader" };
-		shaderPerVertex.Bind();
-		shaderPerVertex.SetUniformMat4f("u_Model", glm::mat4{ 1.0f }); //Mat4{1.0}은 단위 행렬
-		shaderPerVertex.SetUniformMat4f("u_Projection", proj);
-		shaderPerVertex.SetUniformMat4f("u_View", camera.CalculateViewMatrix());
-		shaderPerVertex.SetUniform1i("u_Texture", 0); //0번 슬롯의 텍스처를 사용할 것이라는 것을 셰이더에 명시
-
 		Shader shaderPerFragment{ "res/shaders/Lighting_Specular_Per_Fragment.shader" };
 		shaderPerFragment.Bind();
 		shaderPerFragment.SetUniformMat4f("u_Model", glm::mat4{ 1.0f }); //Mat4{1.0}은 단위 행렬
@@ -66,7 +59,7 @@ int main(void)
 		
 		Renderer renderer;
 
-		Light mainLight{ glm::vec3{1.0f,1.0f,1.0f}, 0.3f ,
+		DirectionalLight mainLight{ glm::vec3{1.0f,1.0f,1.0f}, 0.3f ,
 						glm::vec3{2.0f,-1.0f,-2.0f}, 0.3f }; //specular 효과를 잘 보기위해 diffuse를 약간 줄임
 
 		std::vector<Material> materials;
@@ -77,7 +70,6 @@ int main(void)
 		float deltaTime = 0.0f;
 		float lastTime = 0.0f;
 		
-		int showObjectNum = 0; //per-vertex/per-fragment 바꾸기
 		int materialNum = 0;
 
 		while (!mainWindow.GetShouldClose())
@@ -94,36 +86,20 @@ int main(void)
 		
 			glm::vec3 camPosition = camera.GetEyePosition();
 			
-			ChangeProgramAndMaterial(showObjectNum, materialNum, mainWindow.GetKeys());
+			ChangeProgramAndMaterial(materialNum, mainWindow.GetKeys());
 
 			renderer.Clear();
-					   
-			if (showObjectNum == 0)
-			{
-				//per-vertex object( 왼쪽 )
-				shaderPerVertex.Bind();
-				mainLight.UseLight(shaderPerVertex); //light 관련한 uniform setting
-				materials[materialNum].UseMaterial(shaderPerVertex); //반사도 높은 물체
-				shaderPerVertex.SetUniformMat4f("u_Model", glm::translate(glm::vec3{ 0.0f, 0.0f, 0.0f })); //Mat4{1.0}은 단위 행렬
-				shaderPerVertex.SetUniformMat4f("u_View", camera.CalculateViewMatrix()); //카메라 변화에 따라 새로 계산된 view 행렬 셰이더에 전달
-				shaderPerVertex.SetUniform3f("u_EyePosition", camPosition.x, camPosition.y, camPosition.z);
-				teapot.RenderModel(shaderPerVertex);
-				shaderPerVertex.Unbind();
-			}
+			
+			//per-fragment object
+			shaderPerFragment.Bind();
+			mainLight.UseLight(shaderPerFragment); //light 관련한 uniform setting
+			materials[materialNum].UseMaterial(shaderPerFragment); //반사도 높은 물체
+			shaderPerFragment.SetUniformMat4f("u_Model", glm::translate(glm::vec3{ 0.0f, 0.0f, 0.0f })); //Mat4{1.0}은 단위 행렬
+			shaderPerFragment.SetUniformMat4f("u_View", camera.CalculateViewMatrix()); //카메라 변화에 따라 새로 계산된 view 행렬 셰이더에 전달
+			shaderPerFragment.SetUniform3f("u_EyePosition", camPosition.x, camPosition.y, camPosition.z);
+			teapot.RenderModel(shaderPerFragment);
+			shaderPerFragment.Unbind();
 
-			if (showObjectNum == 1)
-			{
-				//per-fragment object( 오른쪽 )
-				shaderPerFragment.Bind();
-				mainLight.UseLight(shaderPerFragment); //light 관련한 uniform setting
-				materials[materialNum].UseMaterial(shaderPerFragment); //반사도 높은 물체
-				shaderPerFragment.SetUniformMat4f("u_Model", glm::translate(glm::vec3{ 0.0f, 0.0f, 0.0f })); //Mat4{1.0}은 단위 행렬
-				shaderPerFragment.SetUniformMat4f("u_View", camera.CalculateViewMatrix()); //카메라 변화에 따라 새로 계산된 view 행렬 셰이더에 전달
-				shaderPerFragment.SetUniform3f("u_EyePosition", camPosition.x, camPosition.y, camPosition.z);
-				teapot.RenderModel(shaderPerFragment);
-				shaderPerFragment.Unbind();
-
-			}
 
 			/* Swap front and back buffers */
 			mainWindow.SwapBuffers();
@@ -135,18 +111,8 @@ int main(void)
 	return 0;
 }
 
-void ChangeProgramAndMaterial(int& num, int& materialNum, bool * keys)
+void ChangeProgramAndMaterial(int& materialNum, bool * keys)
 {
-
-	if (keys[GLFW_KEY_E])
-	{
-		num = 1;
-	}
-	if (keys[GLFW_KEY_Q])
-	{
-		num = 0;
-	}
-
 	if (keys[GLFW_KEY_Z])
 	{
 		materialNum = 0;
