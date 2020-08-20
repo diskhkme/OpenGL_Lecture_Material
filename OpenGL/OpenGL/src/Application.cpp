@@ -73,7 +73,7 @@ int main(void)
 		Renderer renderer;
 
 		//shadow Map을 그리는 Directional Light
-		DirectionalLight mainLight{ 256,256, //해상도를 바꾸어 어떤 효과가 있는지 보자
+		DirectionalLight mainLight{ 1024,1024, //해상도를 바꾸어 어떤 효과가 있는지 보자
 						glm::vec3{1.0f,1.0f,1.0f}, 0.1f ,
 						glm::vec3{2.0f,-2.0f,0.0f}, 1.0f }; //빛은 위에서 아래로 똑바로 내리쬐고 있음
 

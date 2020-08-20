@@ -14,7 +14,7 @@ DirectionalLight::DirectionalLight(int shadowWidth, int shadowHeight,
 	:Light{shadowWidth, shadowHeight, aColor,aIntensity, dIntensity}, m_Direction{direction}
 {
 	//m_LightProjection = glm::ortho(-5.0f, 5.0f, -5.0f, 5.0f, 0.1f, 20.0f);
-	m_LightProjection = glm::ortho(-20.0f, 20.0f, -20.0f, 20.0f, 0.1f, 100.0f);
+	m_LightProjection = glm::ortho(-20.0f, 20.0f, -20.0f, 20.0f, 0.1f, 100.0f); //값을 바꾸어 어떤 효과가 있는지 보자
 }
 
 DirectionalLight::~DirectionalLight()

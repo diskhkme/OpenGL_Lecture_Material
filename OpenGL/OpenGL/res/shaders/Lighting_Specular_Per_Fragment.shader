@@ -78,7 +78,17 @@ float CalcDirectionalShadowFactor(DirectionalLight light)
 	float closest = texture(u_DirectionalShadowMap, projCoords.xy).r; //shadow map 텍스처에 저장된 깊이 정보 샘플링
 	float current = projCoords.z; //실제 frag와 light간의 깊이
 
-	float shadow = current > closest ? 1.0 : 0.0; //텍스처에 저장된 값이 더 작으면(그림자 영역이면) 1 반환
+	//간단한 고정된 bias 대신 계산을 통해 적절한 bias 선정
+	vec3 normal = normalize(v_Normal);
+	vec3 lightDir = normalize(light.direction);
+	float bias = max(0.05*(1.0 - dot(normal, lightDir)),0.055);
+
+	float shadow = current - bias > closest ? 1.0 : 0.0; //bias 적용
+
+	if (projCoords.z > 1.0) //far plane 뒤쪽으로는 shadow 적용 안함
+	{
+		shadow = 0.0;
+	}
 
 	return shadow;
 }
