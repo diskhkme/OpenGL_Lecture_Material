@@ -61,10 +61,16 @@ uniform sampler2D u_Texture; //texture는 sampler2D 타입
 uniform DirectionalLight u_DirectionalLight;
 uniform Material u_Material;
 
+uniform sampler2D u_Normal; //normal map texture 추가
+
 //빛 기본 정보와 방향이 주어졌을 때, rendering eqn에 따른 색상 계산
 vec3 CalcLight(Light light, vec3 direction)
 {
-	vec3 normal = normalize(v_Normal); //법선 벡터 normalize 필요! (안할 경우 76 line에서 잘못 계산됨)
+	//vec3 normal = normalize(v_Normal); //법선 벡터 normalize 필요! (안할 경우 76 line에서 잘못 계산됨)
+	
+	//normap map 텍스처가 있으면, normal을 모델의 값이 아니라 texture에서 샘플링한 값을 사용!
+	vec3 normal = texture(u_Normal, v_TexCoord).rgb; //rgb값이 벡터의 xyz component
+	normal = normalize(normal);
 	
 	vec3 lightAmbient = light.lightColor * light.ambientIntensity;
 	
