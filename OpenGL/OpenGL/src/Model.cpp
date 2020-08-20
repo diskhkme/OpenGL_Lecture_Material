@@ -32,7 +32,8 @@ void Model::LoadModel(const std::string & fileName)
 {
 	Assimp::Importer importer;
 	const aiScene* scene = importer.ReadFile(fileName,
-		aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenSmoothNormals);
+		aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenSmoothNormals |
+		aiProcess_CalcTangentSpace); //normal map 올바른 적용을 위한 Tengent 계산도 해줌
 
 	if (!scene)
 	{
@@ -94,6 +95,12 @@ void Model::LoadMesh(aiMesh * mesh, const aiScene * scene)
 
 		//vertex normal
 		vertices.insert(vertices.end(), { mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z });
+
+		//vertex tangent
+		vertices.insert(vertices.end(), { mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z });
+
+		//vertex bitangent
+		vertices.insert(vertices.end(), { mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z });
 	}
 
 	//index 정보 parse
@@ -108,11 +115,13 @@ void Model::LoadMesh(aiMesh * mesh, const aiScene * scene)
 
 	//vao 생성 VertexArray가 담당
 	VertexArray* VAO = new VertexArray;
-	VertexBuffer* vb = new VertexBuffer{ &vertices[0], mesh->mNumVertices * 8 * sizeof(float) };
+	VertexBuffer* vb = new VertexBuffer{ &vertices[0], mesh->mNumVertices * 14 * sizeof(float) };
 	VertexBufferLayout layout;
 	layout.Push<float>(3); //vertex당 3개의 위치를 표현하는 float 데이터
 	layout.Push<float>(2); //vertex당 2개의 텍스처 좌표를 표현하는 float 데이터
 	layout.Push<float>(3); //vertex당 3개의 법선 벡터를 표현하는 float 데이터
+	layout.Push<float>(3); //vertex당 3개의 tangent 벡터를 표현하는 float 데이터
+	layout.Push<float>(3); //vertex당 3개의 bi-tangent 벡터를 표현하는 float 데이터
 	VAO->AddBuffer(*vb, layout);
 	VAOs.push_back(VAO);
 	VBOs.push_back(vb);

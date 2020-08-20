@@ -69,6 +69,13 @@ int main(void)
 		shaderNormalMap.SetUniformMat4f("u_Projection", proj);
 		shaderNormalMap.SetUniformMat4f("u_View", camera.CalculateViewMatrix());
 
+		//normal map using tangent space transform
+		Shader shaderNormalMapTangent{ "res/shaders/Lighting_And_NormalMap_inTangent.shader" };
+		shaderNormalMapTangent.Bind();
+		shaderNormalMapTangent.SetUniformMat4f("u_Model", glm::mat4{ 1.0f }); //Mat4{1.0}은 단위 행렬
+		shaderNormalMapTangent.SetUniformMat4f("u_Projection", proj);
+		shaderNormalMapTangent.SetUniformMat4f("u_View", camera.CalculateViewMatrix());
+
 		
 		Renderer renderer;
 
@@ -85,6 +92,9 @@ int main(void)
 		
 		int materialNum = 0;
 		int shaderNum = 0;
+
+		float rotAngle = 90.0f;
+		float angleIncrement = 5.0f;
 
 		while (!mainWindow.GetShouldClose())
 		{
@@ -104,6 +114,15 @@ int main(void)
 
 			renderer.Clear();
 			
+			
+			if (rotAngle > 110.0f)
+				angleIncrement = -5.0f;
+
+			if (rotAngle < 70.0f)
+				angleIncrement = 5.0f;
+			
+			rotAngle += angleIncrement * deltaTime;
+
 			//shader program을 인자로 받는 render 함수를 별개로 만들어도 됨
 			if (shaderNum == 0)
 			{
@@ -111,7 +130,7 @@ int main(void)
 				mainLight.UseLight(shaderPerFragment); //light 관련한 uniform setting
 				materials[materialNum].UseMaterial(shaderPerFragment); //반사도 높은 물체
 				glm::mat4 planeModelMat = glm::mat4{ 1.0 };
-				planeModelMat = glm::rotate(planeModelMat, 90.0f, glm::vec3{ 1.0f,0.0f,0.0f }); //만일 이 회전을 하지 않으면 보이지 않는다. 왜 그럴까?
+				planeModelMat = glm::rotate(planeModelMat, glm::radians( rotAngle ), glm::vec3{ 1.0f,0.0f,0.0f }); //시간에 따른 회전 애니메이션
 				planeModelMat = glm::scale(planeModelMat, glm::vec3{ 0.1f,0.1f,0.1f });
 				
 				shaderPerFragment.SetUniformMat4f("u_Model", planeModelMat);
@@ -130,7 +149,7 @@ int main(void)
 				mainLight.UseLight(shaderNormalMap); //light 관련한 uniform setting
 				materials[materialNum].UseMaterial(shaderNormalMap); //반사도 높은 물체
 				glm::mat4 planeModelMat = glm::mat4{ 1.0 };
-				planeModelMat = glm::rotate(planeModelMat, 90.0f, glm::vec3{ 1.0f,0.0f,0.0f }); //만일 이 회전을 하지 않으면 보이지 않아야 하는데 보인다. 왜 그럴까?
+				planeModelMat = glm::rotate(planeModelMat, glm::radians(rotAngle), glm::vec3{ 1.0f,0.0f,0.0f });
 				planeModelMat = glm::scale(planeModelMat, glm::vec3{ 0.1f,0.1f,0.1f });
 								
 				shaderNormalMap.SetUniformMat4f("u_Model", planeModelMat);
@@ -142,6 +161,25 @@ int main(void)
 				shaderNormalMap.SetUniform1i("u_Normal", 1);
 				plane.RenderModel(shaderNormalMap);
 				shaderNormalMap.Unbind();
+			}
+			else if (shaderNum == 2)
+			{
+				shaderNormalMapTangent.Bind();
+				mainLight.UseLight(shaderNormalMapTangent); //light 관련한 uniform setting
+				materials[materialNum].UseMaterial(shaderNormalMapTangent); //반사도 높은 물체
+				glm::mat4 planeModelMat = glm::mat4{ 1.0 };
+				planeModelMat = glm::rotate(planeModelMat, glm::radians(rotAngle), glm::vec3{ 1.0f,0.0f,0.0f }); //만일 이 회전을 하지 않으면 보이지 않아야 하는데 보인다. 왜 그럴까?
+				planeModelMat = glm::scale(planeModelMat, glm::vec3{ 0.1f,0.1f,0.1f });
+
+				shaderNormalMapTangent.SetUniformMat4f("u_Model", planeModelMat);
+				shaderNormalMapTangent.SetUniformMat4f("u_View", camera.CalculateViewMatrix()); //카메라 변화에 따라 새로 계산된 view 행렬 셰이더에 전달
+				shaderNormalMapTangent.SetUniform3f("u_EyePosition", camPosition.x, camPosition.y, camPosition.z);
+				texture.Bind();
+				shaderNormalMapTangent.SetUniform1i("u_Texture", 0);
+				normalMap.Bind(1);
+				shaderNormalMapTangent.SetUniform1i("u_Normal", 1);
+				plane.RenderModel(shaderNormalMapTangent);
+				shaderNormalMapTangent.Unbind();
 			}
 			
 
@@ -173,5 +211,9 @@ void ChangeProgramAndMaterial(int& materialNum, int& shaderNum, bool * keys)
 	if (keys[GLFW_KEY_2])
 	{
 		shaderNum = 1; //normal map 사용하는 shader
+	}
+	if (keys[GLFW_KEY_3])
+	{
+		shaderNum = 2; //normal map 사용하는 shader
 	}
 }
