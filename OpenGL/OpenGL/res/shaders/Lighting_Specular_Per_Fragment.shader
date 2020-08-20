@@ -83,7 +83,18 @@ float CalcDirectionalShadowFactor(DirectionalLight light)
 	vec3 lightDir = normalize(light.direction);
 	float bias = max(0.05*(1.0 - dot(normal, lightDir)),0.055);
 
-	float shadow = current - bias > closest ? 1.0 : 0.0; //bias 적용
+	//Percentage close filtering
+	float shadow = 0.0;
+	vec2 texelSize = 1.0 / textureSize(u_DirectionalShadowMap, 0); //텍스처 크기의 역수, 아래 loop에서 1,0,-1을 uv coord 단위로 변환하기 위해 사용
+	for (int x = -1; x <= 1; x++)
+	{
+		for (int y = -1; y <= 1; y++)
+		{
+			float pcfDepth = texture(u_DirectionalShadowMap, projCoords.xy + vec2(x, y) * texelSize).r;
+			shadow += current - bias > pcfDepth ? 1.0 : 0.0; //aggregation
+		}
+	}
+	shadow /= 9; //평균값 계산
 
 	if (projCoords.z > 1.0) //far plane 뒤쪽으로는 shadow 적용 안함
 	{

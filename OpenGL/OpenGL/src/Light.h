@@ -14,7 +14,7 @@ public:
 	Light();
 	Light(int shadowWidth, int shadowHeight,
 		glm::vec3 aColor, float aIntensity, float dIntensity); //모든 light가 방향을 갖는 것은 아님
-	~Light();
+	virtual ~Light();
 
 	ShadowMap* GetShadowMap() { return m_ShadowMap; }
 	//입력해야 하는 uniform도 light 종류에 따라 다름
