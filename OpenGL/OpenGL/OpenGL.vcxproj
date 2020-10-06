@@ -135,6 +135,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Window.cpp" />
     <None Include="res\shaders\DepthMapVisualize.shader">
       <FileType>CppCode</FileType>
     </None>
@@ -146,7 +147,6 @@
     <ClCompile Include="src\Material.cpp" />
     <ClCompile Include="src\Model.cpp" />
     <ClCompile Include="src\ShadowMap.cpp" />
-    <ClCompile Include="src\Window.cpp" />
     <ClCompile Include="src\Renderer.cpp" />
     <ClCompile Include="src\Shader.cpp" />
     <ClCompile Include="src\Texture.cpp" />
@@ -271,6 +271,7 @@
   <ItemGroup>
     <ClInclude Include="src\ShadowMap.h" />
     <ClInclude Include="src\DirectionalLight.h" />
+    <ClInclude Include="src\Window.h" />
     <None Include="res\shaders\Lighting_Specular_Per_Fragment.shader">
       <FileType>Document</FileType>
     </None>
@@ -279,7 +280,6 @@
     <ClInclude Include="src\Light.h" />
     <ClInclude Include="src\Material.h" />
     <ClInclude Include="src\Model.h" />
-    <ClInclude Include="src\Window.h" />
     <ClInclude Include="src\Renderer.h" />
     <ClInclude Include="src\Shader.h" />
     <ClInclude Include="src\Texture.h" />

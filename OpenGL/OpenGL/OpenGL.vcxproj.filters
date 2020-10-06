@@ -42,9 +42,6 @@
     <ClCompile Include="src\vendor\glm\detail\glm.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="src\Window.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
     <ClCompile Include="src\Camera.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
@@ -63,7 +60,7 @@
     <ClCompile Include="src\ShadowMap.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="res\shaders\DepthMapVisualize.shader">
+    <ClCompile Include="src\Window.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>
@@ -397,6 +394,8 @@
     </None>
     <None Include="assimp-vc140-mt.dll" />
     <None Include="res\shaders\DirectionalShadowMap.shader" />
+    <None Include="res\shaders\DepthMapVisualize.shader" />
+    <None Include="res\shaders\Lighting_Specular_Per_Fragment.shader" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Renderer.h">
@@ -852,9 +851,6 @@
     <ClInclude Include="src\vendor\glm\vector_relational.hpp">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="src\Window.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
     <ClInclude Include="src\Camera.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
@@ -867,13 +863,13 @@
     <ClInclude Include="src\Material.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="res\shaders\Lighting_Specular_Per_Fragment.shader">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
     <ClInclude Include="src\DirectionalLight.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="src\ShadowMap.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Window.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>

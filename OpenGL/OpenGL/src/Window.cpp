@@ -31,7 +31,7 @@ int Window::Initialize()
 	/* Initialize the library */
 	if (!glfwInit())
 		return -1;
-	
+
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3); //Opengl 3.3 버전 사용
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -49,7 +49,7 @@ int Window::Initialize()
 
 	/* Make the window's context current */
 	glfwMakeContextCurrent(m_MainWindow);
-		
+
 	glfwSwapInterval(1); //1이면 vsync rate와 같은 속도로 화면 갱신
 
 	// glfwMakeContextCurrent가 호출된 후에 glewInit이 수행되어야 함
@@ -59,9 +59,9 @@ int Window::Initialize()
 	}
 
 	glViewport(0, 0, m_BufferWidth, m_BufferHeight);
-	
+
 	std::cout << glGetString(GL_VERSION) << std::endl; //내 플랫폼의 GL_Version 출력해보기
-	
+
 
 	//콜백 등록
 	CreateCallback();
@@ -103,8 +103,8 @@ void Window::ChangeViewPort(int width, int height)
 }
 
 void Window::HandleKeys(GLFWwindow * window, int key, int code, int action, int mode)
-	//key: 어떤 키인지, code: 플랫폼 특정 scan code(사용안함)
-	//action: 키에서 발생한 행동(눌림, 뗌 등), mode: 컨트롤, 알트, 쉬프트 등 입력
+//key: 어떤 키인지, code: 플랫폼 특정 scan code(사용안함)
+//action: 키에서 발생한 행동(눌림, 뗌 등), mode: 컨트롤, 알트, 쉬프트 등 입력
 {
 	//72 line에서 저장한 객체 포인터를 반환
 	Window *windowObject = static_cast<Window*>(glfwGetWindowUserPointer(window));
@@ -133,7 +133,7 @@ void Window::HandleKeys(GLFWwindow * window, int key, int code, int action, int 
 }
 
 void Window::HandleMouse(GLFWwindow * window, double xPos, double yPos)
-	//xpos, ypos : 마우스의 윈도우 내에서의 x,y 좌표
+//xpos, ypos : 마우스의 윈도우 내에서의 x,y 좌표
 {
 	//72 line에서 저장한 객체 포인터를 반환
 	Window *windowObject = static_cast<Window*>(glfwGetWindowUserPointer(window));
