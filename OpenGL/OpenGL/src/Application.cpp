@@ -36,6 +36,9 @@ int main(void)
 		//외부 모델을 불러와서 사용하기 위해 Model 클래스 정의
 		Model teapot;
 		teapot.LoadModel("res/models/teapot.obj"); //obj와 같은 3D 모델 파일을 입력 가능
+
+		Model plane;
+		plane.LoadModel("res/models/SubdividedPlane_100.obj"); //반투명 표현을 위해 평면 모델을 추가
 		
 		
 		//yaw 값이 0일때는 front가 [1,0,0]이므로, yaw를 90으로 해서 초기 front가 [0,0,-1]이 되도록 함
@@ -56,6 +59,18 @@ int main(void)
 		shaderPerFragment.SetUniformMat4f("u_Projection", proj);
 		shaderPerFragment.SetUniformMat4f("u_View", camera.CalculateViewMatrix());
 		shaderPerFragment.SetUniform1i("u_Texture", 0);
+
+		//평면을 렌더링 하기위한 simpleTransparent shader 사용
+		Shader simpleTransparent{ "res/shaders/SimpleTransparent.shader" };
+		simpleTransparent.Bind();
+		glm::mat4 planeModelMat = glm::mat4{ 1.0f };
+		planeModelMat = glm::scale(planeModelMat, glm::vec3{ 0.1f,0.1f,0.1f });
+		planeModelMat = glm::rotate(planeModelMat, glm::radians(90.f), glm::vec3{ 1.0f, 0.0f, 0.0f });
+		planeModelMat = glm::translate(planeModelMat, glm::vec3{ 0.0f, 110.0f, 0.0f });
+		simpleTransparent.SetUniformMat4f("u_Model", planeModelMat); //Mat4{1.0}은 단위 행렬
+		simpleTransparent.SetUniformMat4f("u_Projection", proj);
+		simpleTransparent.SetUniformMat4f("u_View", camera.CalculateViewMatrix());
+		simpleTransparent.SetUniform4f("u_Color", 0.2f, 0.3f, 0.8f, 0.5f); //평면의 색상은 (0.2, 0.3, 0.8)이고, Alpha값은 0.5
 		
 		Renderer renderer;
 
@@ -100,6 +115,11 @@ int main(void)
 			teapot.RenderModel(shaderPerFragment);
 			shaderPerFragment.Unbind();
 
+			//주전자가 그려진 후에 평면 그리기. 만일 주전자가 그려지기 전에 평면을 먼저 그려도(draw call) 투명 효과가 나타날까?
+			simpleTransparent.Bind();
+			plane.RenderModel(simpleTransparent);
+			simpleTransparent.SetUniformMat4f("u_View", camera.CalculateViewMatrix()); //카메라 변화에 따라 새로 계산된 view 행렬 셰이더에 전달
+			shaderPerFragment.Unbind();
 
 			/* Swap front and back buffers */
 			mainWindow.SwapBuffers();
