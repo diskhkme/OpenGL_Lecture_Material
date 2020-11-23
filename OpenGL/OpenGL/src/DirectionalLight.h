@@ -16,6 +16,8 @@ public:
 	void UseLight(Shader& shader, int slot); //그림자를 그리기 위한 uniform 설정
 	void UseLightForShadow(Shader& shader); //depth map 생성을 위한 uniform 설정
 
+	void SetDirection(const glm::vec3& dir);
+
 	//light 변환 행렬 반환 함수
 	glm::mat4 CalculateLightTransform();
 private:

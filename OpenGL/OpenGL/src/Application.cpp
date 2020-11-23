@@ -52,9 +52,11 @@ int main(void)
 		////--------------Texture 생성---------//
 		Texture texture{ "res/textures/uvchecker.jpg" };
 		//texture.Bind(0); //0번 슬롯에 바인딩
+		//Texture toonLutTexture{ "res/textures/TwoToneGradient.tga" };
+		Texture toonLutTexture{ "res/textures/UtilToonGradient.tga" };
 
 		//---------Shader 생성---------------//
-		Shader shaderPerFragment{ "res/shaders/Lighting_Specular_Per_Fragment.shader" };
+		Shader shaderPerFragment{ "res/shaders/ToonShading.shader" };
 		shaderPerFragment.Bind();
 		shaderPerFragment.SetUniformMat4f("u_Model", glm::mat4{ 1.0f }); //Mat4{1.0}은 단위 행렬
 		shaderPerFragment.SetUniformMat4f("u_Projection", proj);
@@ -102,6 +104,8 @@ int main(void)
 			ChangeScene(sceneNum, mainWindow.GetKeys());
 
 			glm::vec3 camPosition = camera.GetEyePosition();
+
+			mainLight.SetDirection(glm::vec3(cos(now), -1.0f, glm::sin(now)));
 			
 			//-----------이제 그리기 pass는 두 개로 나뉘어짐 1. shadow map / 2. scene--------//
 			
@@ -146,16 +150,18 @@ int main(void)
 					shaderPerFragment.SetUniform3f("u_EyePosition", camPosition.x, camPosition.y, camPosition.z);
 					texture.Bind(0); //0번 슬롯에 바인딩
 					shaderPerFragment.SetUniform1i("u_Texture", 0);
+					toonLutTexture.Bind(1);
+					shaderPerFragment.SetUniform1i("u_ToonLut", 1);
 					teapot.RenderModel(shaderPerFragment);
 					
 
-					glm::mat4 planeModelMat = glm::mat4{ 1.0f };
-					planeModelMat = glm::scale(planeModelMat, glm::vec3{ 0.5f,0.5f,0.5f });
-					planeModelMat = glm::translate(planeModelMat, glm::vec3{ 0.0f,-10.0f,0.0f });
-					shaderPerFragment.SetUniformMat4f("u_Model", planeModelMat); //Mat4{1.0}은 단위 행렬
-					materials[1].UseMaterial(shaderPerFragment); //바닥면은 반사도 낮게
-					plane.RenderModel(shaderPerFragment);
-					shaderPerFragment.Unbind();
+					//glm::mat4 planeModelMat = glm::mat4{ 1.0f };
+					//planeModelMat = glm::scale(planeModelMat, glm::vec3{ 0.5f,0.5f,0.5f });
+					//planeModelMat = glm::translate(planeModelMat, glm::vec3{ 0.0f,-10.0f,0.0f });
+					//shaderPerFragment.SetUniformMat4f("u_Model", planeModelMat); //Mat4{1.0}은 단위 행렬
+					//materials[1].UseMaterial(shaderPerFragment); //바닥면은 반사도 낮게
+					//plane.RenderModel(shaderPerFragment);
+					//shaderPerFragment.Unbind();
 				}
 				if (sceneNum == 1)
 				{

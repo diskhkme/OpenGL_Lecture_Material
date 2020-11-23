@@ -396,6 +396,7 @@
     <None Include="res\shaders\DirectionalShadowMap.shader" />
     <None Include="res\shaders\DepthMapVisualize.shader" />
     <None Include="res\shaders\Lighting_Specular_Per_Fragment.shader" />
+    <None Include="res\shaders\ToonShading.shader" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Renderer.h">

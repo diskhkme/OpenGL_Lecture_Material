@@ -158,6 +158,7 @@
   <ItemGroup>
     <None Include="assimp-vc140-mt.dll" />
     <None Include="res\shaders\DirectionalShadowMap.shader" />
+    <None Include="res\shaders\ToonShading.shader" />
     <None Include="src\vendor\glm\detail\func_common.inl" />
     <None Include="src\vendor\glm\detail\func_exponential.inl" />
     <None Include="src\vendor\glm\detail\func_geometric.inl" />

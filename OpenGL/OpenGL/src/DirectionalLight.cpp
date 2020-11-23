@@ -40,6 +40,11 @@ void DirectionalLight::UseLightForShadow(Shader & shader)
 	shader.SetUniformMat4f("u_DirectionalLightTransform", CalculateLightTransform());
 }
 
+void DirectionalLight::SetDirection(const glm::vec3 & dir)
+{
+	m_Direction = dir;
+}
+
 glm::mat4 DirectionalLight::CalculateLightTransform()
 {
 	//Lightø° ¥Î«— ViewProjection Matrix
